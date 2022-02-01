@@ -87,7 +87,7 @@ function respErr(msg, data) {
 }
 
 function getClientIp() {
-	var ip = this.headers['x-forwarded-for'] || this.connection.remoteAddress || this.socket.remoteAddress || this.connection.socket.remoteAddress || ''
+	let ip = this.headers['x-forwarded-for'] || this.connection.remoteAddress || this.socket.remoteAddress || this.connection.socket.remoteAddress || ''
 	if (ip == '::1') return '127.0.0.1'
 	ip = ip.match(/\d+.\d+.\d+.\d+/)
 	ip = ip ? ip.join('.') : null
@@ -111,7 +111,7 @@ function getStringNotNull(field) {
 function getInt(field) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (Math.floor(v) != v) throw `必须是整数:${field}`
 	return v
@@ -119,7 +119,7 @@ function getInt(field) {
 function getIntWithMinValue(field, minval) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (Math.floor(v) != v) throw `必须是整数:${field}`
 	if (v <= minval) throw `必须大于${minval}:${field}`
@@ -128,7 +128,7 @@ function getIntWithMinValue(field, minval) {
 function getIntWithMaxValue(field, maxval) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (Math.floor(v) != v) throw `必须是整数:${field}`
 	if (v >= maxval) throw `必须小于${maxval}:${field}}`
@@ -137,7 +137,7 @@ function getIntWithMaxValue(field, maxval) {
 function getIntInRange(field, minval, maxval) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (Math.floor(v) != v) throw `必须是整数:${field}`
 	if (v <= minval || v >= maxval) throw `必须小于在[${minval},${maxval}]之间:${field}`
@@ -146,11 +146,11 @@ function getIntInRange(field, minval, maxval) {
 function getIntInEnum(field, evalue) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (Math.floor(v) != v) throw `必须是整数:${field}`
-	var finded = false
-	for (var i = 0; i < evalue.length; i++) {
+	let finded = false
+	for (let i = 0; i < evalue.length; i++) {
 		if (evalue[i] == v) {
 			finded = true
 			break
@@ -162,14 +162,14 @@ function getIntInEnum(field, evalue) {
 function getNumber(field) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `${field}必须是数字`
 	return v
 }
 function getNumberWithMinValue(field, minval) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (v <= minval) throw `必须大于${minval}:${field}`
 	return v
@@ -177,7 +177,7 @@ function getNumberWithMinValue(field, minval) {
 function getNumberWithMaxValue(field, maxval) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (v >= maxval) throw `必须小于${maxval}:${field}}`
 	return v
@@ -185,7 +185,7 @@ function getNumberWithMaxValue(field, maxval) {
 function getNumberInRange(field, minval, maxval) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
 	if (v <= minval || v >= maxval) throw `必须小于在[${minval},${maxval}]之间:${field}`
 	return v
@@ -193,10 +193,10 @@ function getNumberInRange(field, minval, maxval) {
 function getNumberInEnum(field, evalue) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	var v = Number(this.body[field])
+	let v = Number(this.body[field])
 	if (isNaN(v)) throw `必须是数字:${field}`
-	var finded = false
-	for (var i = 0; i < evalue.length; i++) {
+	let finded = false
+	for (let i = 0; i < evalue.length; i++) {
 		if (evalue[i] == v) {
 			finded = true
 			break
@@ -205,13 +205,13 @@ function getNumberInEnum(field, evalue) {
 	if (!finded) throw `必须是其中之一${JSON.stringify(evalue)}:${field}`
 	return v
 }
-var redis_token = null
-var httpdata = {}
-var redisdata = {}
+let redis_token = null
+let httpdata = {}
+let redisdata = {}
 class bhttp {
 	constructor(name, port) {
 		this.name = name
-		var app = express()
+		let app = express()
 		app.use((req, res, next) => {
 			res.header('Access-Control-Allow-Origin', '*')
 			res.header('Access-Control-Allow-Methods', 'GET,POST')
@@ -282,7 +282,7 @@ class bhttp {
 			ctx.respErr = respErr
 			ctx.respOk = respOk
 			redis_token.select(0).then(() => {
-				var token = req.get('x-token')
+				let token = req.get('x-token')
 				redis_token.get(`token:${token}`).then((tokendata) => {
 					if (!tokendata) {
 						ctx.respErr('未登录', {})
@@ -321,7 +321,7 @@ class bhttp {
 			ctx.respErr = respErr
 			ctx.respOk = respOk
 			redis_token.select(0).then(() => {
-				var token = req.get('x-token')
+				let token = req.get('x-token')
 				redis_token.get(`token:${token}`).then((tokendata) => {
 					if (!tokendata) {
 						ctx.respErr('未登录', {})
@@ -384,13 +384,13 @@ class bhttp {
 }
 
 module.exports = {}
-var connect_redis
+let connect_redis
 connect_redis = function (rediscfgs, index, callback) {
 	if (rediscfgs.length == 0 || rediscfgs.length == index) {
 		callback()
 		return
 	}
-	var connection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
+	let connection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
 	connection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
 	connection.name = rediscfgs[index].name
 	connection.subscribe = function (channel, callback) {
@@ -416,11 +416,11 @@ connect_redis = function (rediscfgs, index, callback) {
 		setInterval(() => {
 			connection.ping()
 		}, 5000)
-		var subconnection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
+		let subconnection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
 		subconnection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
 		subconnection.connect().then(() => {
 			subconnection.subscribe(`__ping__${rediscfgs[index].name}`, (msg) => {})
-			var pubconnection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
+			let pubconnection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
 			pubconnection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
 			pubconnection.connect().then(() => {
 				setInterval(() => {
@@ -435,8 +435,8 @@ connect_redis = function (rediscfgs, index, callback) {
 		})
 	})
 }
-var dbdata = {}
-var connect_db
+let dbdata = {}
+let connect_db
 connect_db = function (dbcfgs, index, subidx, callback) {
 	if (dbcfgs.length == index) {
 		callback()
@@ -446,8 +446,8 @@ connect_db = function (dbcfgs, index, subidx, callback) {
 		connect_db(dbcfgs, index + 1, 0, callback)
 		return
 	}
-	var key = `${dbcfgs[index].name}_${subidx}`
-	var db = mysql.createConnection(dbcfgs[index])
+	let key = `${dbcfgs[index].name}_${subidx}`
+	let db = mysql.createConnection(dbcfgs[index])
 	db.connect((err) => {
 		if (err) {
 			setTimeout(() => {
@@ -482,9 +482,9 @@ function dbexectue(sql, params, ctx, callback) {
 		callback = ctx
 		ctx = null
 	}
-	var db = null
-	for (var i = 0; i < 10; i++) {
-		var subidx = Math.floor(Math.random() * 10000) % this.count
+	let db = null
+	for (let i = 0; i < 10; i++) {
+		let subidx = Math.floor(Math.random() * 10000) % this.count
 		db = dbdata[`${this.name}_${subidx}`]
 		if (db) break
 	}
@@ -494,7 +494,7 @@ function dbexectue(sql, params, ctx, callback) {
 	}
 	db.query(sql, params, (err, result) => {
 		if (err) {
-			var message = err.message
+			let message = err.message
 			if (!message) {
 				message = err.sqlMessage
 			}
@@ -512,8 +512,8 @@ function dbcallProc(name, params, ctx, callback) {
 		callback = ctx
 		ctx = null
 	}
-	var sql = 'call ' + name + '('
-	for (var i = 0; i < params.length; i++) {
+	let sql = 'call ' + name + '('
+	for (let i = 0; i < params.length; i++) {
 		sql += '?'
 		if (i < params.length - 1) {
 			sql += ','
@@ -524,9 +524,9 @@ function dbcallProc(name, params, ctx, callback) {
 		callback = ctx
 		ctx = null
 	}
-	var db = null
-	for (var i = 0; i < 10; i++) {
-		var subidx = Math.floor(Math.random() * 10000) % this.count
+	let db = null
+	for (let i = 0; i < 10; i++) {
+		let subidx = Math.floor(Math.random() * 10000) % this.count
 		db = dbdata[`${this.name}_${subidx}`]
 		if (db) break
 	}
@@ -536,7 +536,7 @@ function dbcallProc(name, params, ctx, callback) {
 	}
 	db.query(sql, params, (err, result) => {
 		if (err) {
-			var message = err.message
+			let message = err.message
 			if (!message) {
 				message = err.sqlMessage
 			}
@@ -547,8 +547,8 @@ function dbcallProc(name, params, ctx, callback) {
 		}
 		if (callback) {
 			result = result || {}
-			var r = result[0] || {}
-			var s = r[0] || r
+			let r = result[0] || {}
+			let s = r[0] || r
 			s = s || {}
 			if (s.errmsg) {
 				console.log(s.errmsg)
@@ -573,10 +573,10 @@ function dbgetPageData(table, where, page, pagesize, ctx, callback) {
 	}
 	where.sqlex = where.sqlex || ''
 	where.sql = where.sql || ''
-	var count = (page - 1) * pagesize
+	let count = (page - 1) * pagesize
 	if (where.sql.length > 0) where.sql = 'and ' + where.sql
-	var sql = `SELECT * FROM ${table} WHERE id <= (SELECT id FROM ${table} ${where.sqlex} ORDER BY id DESC LIMIT ?,1) ${where.sql} ORDER BY id DESC LIMIT ?`
-	var params = []
+	let sql = `SELECT * FROM ${table} WHERE id <= (SELECT id FROM ${table} ${where.sqlex} ORDER BY id DESC LIMIT ?,1) ${where.sql} ORDER BY id DESC LIMIT ?`
+	let params = []
 	if (where.params) {
 		params = JSON.parse(JSON.stringify(where.params))
 	}
@@ -615,23 +615,23 @@ function dbmakeWhere(where, andor, field, o, data) {
 	where.params.push(data)
 }
 function wssendmsg(msgid, data) {
-	var senddata = {
+	let senddata = {
 		msgid: msgid,
 		data: data,
 	}
 	this.sendmsg(JSON.stringify(senddata))
 }
-var wsdata = {}
+let wsdata = {}
 class bws {
 	constructor(name, port) {
 		this.name = name
-		var data = {}
+		let data = {}
 		data.msg_callback = {}
 		wsdata[name] = data
 		if (port) {
 			data.listener = new WebSocket.Server({ port: port })
 			data.listener.on('connection', (connection, req) => {
-				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || ''
+				let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || ''
 				if (ip == '::1') ip = '127.0.0.1'
 				ip = ip.match(/\d+.\d+.\d+.\d+/)
 				ip = ip ? ip.join('.') : null
@@ -650,7 +650,7 @@ class bws {
 					} catch (e) {}
 				})
 				connection.send_msg = (msgid, data) => {
-					var senddata = {
+					let senddata = {
 						msgid: msgid,
 						data: data,
 					}
@@ -681,7 +681,7 @@ class bws {
 		wsdata[this.name].close_callback = callback
 	}
 	connect = (host, callback) => {
-		var connection = new WebSocket(host)
+		let connection = new WebSocket(host)
 		connection.connected = false
 		connection.on('open', () => {
 			connection.connected = true
@@ -728,13 +728,13 @@ module.exports.delToken = (token) => {
 
 module.exports.init = (cfg, callback) => {
 	logger.level = cfg.log.level
-	var dbready
-	var dbreadyed = false
+	let dbready
+	let dbreadyed = false
 	if (cfg.db && cfg.db.length > 0) {
 		connect_db(cfg.db, 0, 0, () => {
 			dbready()
 		})
-		for (var i = 0; i < cfg.db.length; i++) {
+		for (let i = 0; i < cfg.db.length; i++) {
 			module.exports[cfg.db[i].name] = {}
 			module.exports[cfg.db[i].name].count = cfg.db[i].count
 			module.exports[cfg.db[i].name].name = cfg.db[i].name
@@ -747,7 +747,7 @@ module.exports.init = (cfg, callback) => {
 		dbreadyed = true
 	}
 	dbready = () => {
-		var tokenredisready
+		let tokenredisready
 		if (cfg.token) {
 			redis_token = redis.createClient({ url: `redis://${cfg.token.host}:${cfg.token.port}` })
 			redis_token.on('error', (err) => console.log(`Redis连接失败:[token:${cfg.token.host}:${cfg.token.port}]`))
@@ -765,12 +765,12 @@ module.exports.init = (cfg, callback) => {
 		tokenredisready = () => {
 			connect_redis(cfg.redis, 0, () => {
 				if (cfg.http && cfg.http.length > 0) {
-					for (var i = 0; i < cfg.http.length; i++) {
+					for (let i = 0; i < cfg.http.length; i++) {
 						module.exports[cfg.http[i].name] = new bhttp(cfg.http[i].name, cfg.http[i].port)
 					}
 				}
 				if (cfg.ws && cfg.ws.length > 0) {
-					for (var i = 0; i < cfg.ws.length; i++) {
+					for (let i = 0; i < cfg.ws.length; i++) {
 						module.exports[cfg.ws[i].name] = new bws(cfg.ws[i].name, cfg.ws[i].port)
 					}
 				}
@@ -795,7 +795,7 @@ module.exports.rand = (minNum, maxNum) => {
 module.exports.guid = (mask) => {
 	mask = mask || 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 	return mask.replace(/[xy]/g, function (c) {
-		var r = (Math.random() * 16) | 0,
+		let r = (Math.random() * 16) | 0,
 			v = c == 'x' ? r : (r & 0x3) | 0x8
 		return v.toString(16)
 	})
