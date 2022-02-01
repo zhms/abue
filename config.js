@@ -20,12 +20,12 @@ module.exports = {
 	db: [
 		{
 			name: '',
+			count: 10, //连接池个数
 			host: '',
 			port: 0,
 			user: '',
 			password: '',
 			database: '',
-			count: 10,
 		},
 	],
 	ws: [{ name: 'ws', port: 0 }],
