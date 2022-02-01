@@ -627,42 +627,46 @@ class bws {
 		this.name = name
 		var data = {}
 		data.msg_callback = {}
-		data.listener = new WebSocket.Server({ port: port })
-		data.listener.on('connection', (connection, req) => {
-			var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || ''
-			if (ip == '::1') ip = '127.0.0.1'
-			ip = ip.match(/\d+.\d+.\d+.\d+/)
-			ip = ip ? ip.join('.') : null
-			connection.ip = ip
-			connection.sendmsg = connection.send
-			connection.send = wssendmsg
-			connection.on('message', (recvdata) => {
-				if (typeof recvdata != 'string') {
-					recvdata = recvdata.toString('utf-8')
-				}
-				try {
-					recvdata = JSON.parse(recvdata)
-					if (recvdata.msgid && data.msg_callback[recvdata.msgid]) {
-						data.msg_callback[recvdata.msgid](connection, recvdata.data)
-					}
-				} catch (e) {}
-			})
-			connection.send_msg = (msgid, data) => {
-				var senddata = {
-					msgid: msgid,
-					data: data,
-				}
-				connection.send(JSON.stringify(senddata))
-			}
-			connection.on('close', () => {
-				data.close_callback(connection)
-			})
-			if (data.connection_callback) {
-				data.connection_callback(connection)
-			}
-		})
 		wsdata[name] = data
-		console.log(`开启服务[${name}]:`, port)
+		if (port) {
+			data.listener = new WebSocket.Server({ port: port })
+			data.listener.on('connection', (connection, req) => {
+				var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || ''
+				if (ip == '::1') ip = '127.0.0.1'
+				ip = ip.match(/\d+.\d+.\d+.\d+/)
+				ip = ip ? ip.join('.') : null
+				connection.ip = ip
+				connection.sendmsg = connection.send
+				connection.send = wssendmsg
+				connection.on('message', (recvdata) => {
+					if (typeof recvdata != 'string') {
+						recvdata = recvdata.toString('utf-8')
+					}
+					try {
+						recvdata = JSON.parse(recvdata)
+						if (recvdata.msgid && data.msg_callback[recvdata.msgid]) {
+							data.msg_callback[recvdata.msgid](connection, recvdata.data)
+						}
+					} catch (e) {}
+				})
+				connection.send_msg = (msgid, data) => {
+					var senddata = {
+						msgid: msgid,
+						data: data,
+					}
+					connection.send(JSON.stringify(senddata))
+				}
+				connection.on('close', () => {
+					if (data.close_callback) {
+						data.close_callback(connection)
+					}
+				})
+				if (data.connection_callback) {
+					data.connection_callback(connection)
+				}
+			})
+			console.log(`开启服务[${name}]:`, port)
+		}
 	}
 	close = (connection) => {
 		connection.close()
@@ -675,6 +679,37 @@ class bws {
 	}
 	addCloseCallback = (callback) => {
 		wsdata[this.name].close_callback = callback
+	}
+	connect = (host, callback) => {
+		var connection = new WebSocket(host)
+		connection.connected = false
+		connection.on('open', () => {
+			connection.connected = true
+			connection.sendmsg = connection.send
+			connection.send = wssendmsg
+			callback(connection)
+		})
+		connection.on('error', () => {
+			if (!connection.connected) {
+				callback()
+			}
+		})
+		connection.on('close', () => {
+			if (wsdata[this.name].close_callback) {
+				wsdata[this.name].close_callback(connection)
+			}
+		})
+		connection.on('message', (recvdata) => {
+			if (typeof recvdata != 'string') {
+				recvdata = recvdata.toString('utf-8')
+			}
+			try {
+				recvdata = JSON.parse(recvdata)
+				if (recvdata.msgid && wsdata[this.name].msg_callback[recvdata.msgid]) {
+					wsdata[this.name].msg_callback[recvdata.msgid](connection, recvdata.data)
+				}
+			} catch (e) {}
+		})
 	}
 }
 
@@ -694,6 +729,7 @@ module.exports.delToken = (token) => {
 module.exports.init = (cfg, callback) => {
 	logger.level = cfg.log.level
 	var dbready
+	var dbreadyed = false
 	if (cfg.db && cfg.db.length > 0) {
 		connect_db(cfg.db, 0, 0, () => {
 			dbready()
@@ -708,7 +744,7 @@ module.exports.init = (cfg, callback) => {
 			module.exports[cfg.db[i].name].makeWhere = dbmakeWhere
 		}
 	} else {
-		dbready()
+		dbreadyed = true
 	}
 	dbready = () => {
 		var tokenredisready
@@ -742,6 +778,7 @@ module.exports.init = (cfg, callback) => {
 			})
 		}
 	}
+	if (dbreadyed) dbready()
 }
 
 module.exports.clone = (obj) => {
