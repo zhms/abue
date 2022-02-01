@@ -438,12 +438,12 @@ connect_redis = function (rediscfgs, index, callback) {
 var dbdata = {}
 var connect_db
 connect_db = function (dbcfgs, index, subidx, callback) {
-	if (subidx == dbcfgs[index].count) {
-		connect_db(dbcfgs, index + 1, 0, callback)
-		return
-	}
 	if (dbcfgs.length == index) {
 		callback()
+		return
+	}
+	if (subidx == dbcfgs[index].count) {
+		connect_db(dbcfgs, index + 1, 0, callback)
 		return
 	}
 	var key = `${dbcfgs[index].name}_${subidx}`
