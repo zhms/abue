@@ -20,7 +20,6 @@ const mutipartMiddeware = mutipart()
 const moment = require('moment')
 const mysql = require('mysql')
 const libqqwry = require('lib-qqwry')
-console.log(__dirname)
 const qqwry = libqqwry(true, `${__dirname}/ipdata.js`)
 const WebSocket = require('ws')
 const log4jscfg = {
