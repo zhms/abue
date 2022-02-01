@@ -437,9 +437,8 @@ connect_redis = function (rediscfgs, index, callback) {
 }
 var dbdata = {}
 var connect_db
-var db_connection_max = 50
 connect_db = function (dbcfgs, index, subidx, callback) {
-	if (subidx == db_connection_max) {
+	if (subidx == dbcfgs[index].count) {
 		connect_db(dbcfgs, index + 1, 0, callback)
 		return
 	}
@@ -485,7 +484,7 @@ function dbexectue(sql, params, ctx, callback) {
 	}
 	var db = null
 	for (var i = 0; i < 10; i++) {
-		var subidx = Math.floor(Math.random() * 10000) % db_connection_max
+		var subidx = Math.floor(Math.random() * 10000) % this.count
 		db = dbdata[`${this.name}_${subidx}`]
 		if (db) break
 	}
@@ -527,7 +526,7 @@ function dbcallProc(name, params, ctx, callback) {
 	}
 	var db = null
 	for (var i = 0; i < 10; i++) {
-		var subidx = Math.floor(Math.random() * 10000) % db_connection_max
+		var subidx = Math.floor(Math.random() * 10000) % this.count
 		db = dbdata[`${this.name}_${subidx}`]
 		if (db) break
 	}
@@ -701,6 +700,7 @@ module.exports.init = (cfg, callback) => {
 		})
 		for (var i = 0; i < cfg.db.length; i++) {
 			module.exports[cfg.db[i].name] = {}
+			module.exports[cfg.db[i].name].count = cfg.db[i].count
 			module.exports[cfg.db[i].name].name = cfg.db[i].name
 			module.exports[cfg.db[i].name].exectue = dbexectue
 			module.exports[cfg.db[i].name].callProc = dbcallProc

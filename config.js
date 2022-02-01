@@ -3,29 +3,30 @@ module.exports = {
 	http: [
 		{
 			name: '',
-			port: ,
+			port: 0,
 		},
 	],
 	token: {
 		host: '',
-		port: ,
+		port: 0,
 	},
 	redis: [
 		{
 			name: 'redis',
 			host: '',
-			port: ,
+			port: 0,
 		},
 	],
 	db: [
 		{
 			name: '',
 			host: '',
-			port: ,
+			port: 0,
 			user: '',
 			password: '',
 			database: '',
+			count: 10,
 		},
 	],
-	ws: [{ name: 'ws', port:  }],
+	ws: [{ name: 'ws', port: 0 }],
 }
