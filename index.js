@@ -386,7 +386,7 @@ class bhttp {
 module.exports = {}
 let connect_redis
 connect_redis = function (rediscfgs, index, callback) {
-	if (rediscfgs.length == 0 || rediscfgs.length == index) {
+	if (!rediscfgs || rediscfgs.length == 0 || rediscfgs.length == index) {
 		callback()
 		return
 	}
@@ -748,6 +748,7 @@ module.exports.init = (cfg, callback) => {
 	}
 	dbready = () => {
 		let tokenredisready
+        let tokenredisreadyed = false
 		if (cfg.token) {
 			redis_token = redis.createClient({ url: `redis://${cfg.token.host}:${cfg.token.port}` })
 			redis_token.on('error', (err) => console.log(`Redis连接失败:[token:${cfg.token.host}:${cfg.token.port}]`))
@@ -760,7 +761,7 @@ module.exports.init = (cfg, callback) => {
 				tokenredisready()
 			})
 		} else {
-			tokenredisready()
+            tokenredisreadyed = true
 		}
 		tokenredisready = () => {
 			connect_redis(cfg.redis, 0, () => {
@@ -777,6 +778,7 @@ module.exports.init = (cfg, callback) => {
 				callback()
 			})
 		}
+        if(tokenredisreadyed) tokenredisready()
 	}
 	if (dbreadyed) dbready()
 }
