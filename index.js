@@ -390,7 +390,13 @@ connect_redis = function (rediscfgs, index, callback) {
 		callback()
 		return
 	}
-	let connection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
+	let url
+	if (rediscfgs[index].password && rediscfgs[index].length > 0) {
+		url = `redis://:${rediscfgs[index].password}@${rediscfgs[index].host}:${rediscfgs[index].port}`
+	} else {
+		url = `redis://${rediscfgs[index].host}:${rediscfgs[index].port}`
+	}
+	let connection = redis.createClient({ url })
 	connection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
 	connection.name = rediscfgs[index].name
 	connection.subscribe = function (channel, callback) {
@@ -748,9 +754,15 @@ module.exports.init = (cfg, callback) => {
 	}
 	dbready = () => {
 		let tokenredisready
-        let tokenredisreadyed = false
+		let tokenredisreadyed = false
 		if (cfg.token) {
-			redis_token = redis.createClient({ url: `redis://${cfg.token.host}:${cfg.token.port}` })
+			let url
+			if (cfg.token.password && cfg.token.password.length > 0) {
+				url = `redis://:${cfg.token.password}@${cfg.token.host}:${cfg.token.port}`
+			} else {
+				url = `redis://${cfg.token.host}:${cfg.token.port}`
+			}
+			redis_token = redis.createClient({ url })
 			redis_token.on('error', (err) => console.log(`Redis连接失败:[token:${cfg.token.host}:${cfg.token.port}]`))
 			redis_token.connect().then(function () {
 				console.log(`Redis连接成功:[token:${cfg.token.host}:${cfg.token.port}]`)
@@ -761,7 +773,7 @@ module.exports.init = (cfg, callback) => {
 				tokenredisready()
 			})
 		} else {
-            tokenredisreadyed = true
+			tokenredisreadyed = true
 		}
 		tokenredisready = () => {
 			connect_redis(cfg.redis, 0, () => {
@@ -778,7 +790,7 @@ module.exports.init = (cfg, callback) => {
 				callback()
 			})
 		}
-        if(tokenredisreadyed) tokenredisready()
+		if (tokenredisreadyed) tokenredisready()
 	}
 	if (dbreadyed) dbready()
 }
