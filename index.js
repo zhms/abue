@@ -283,7 +283,7 @@ class bhttp {
 			ctx.respOk = respOk
 			redis_token.select(0).then(() => {
 				let token = req.get('x-token')
-				redis_token.get(`token:${token}`).then((tokendata) => {
+				redis_token.get(`abuetoken:${token}`).then((tokendata) => {
 					if (!tokendata) {
 						ctx.respErr('未登录', {})
 						return
@@ -322,7 +322,7 @@ class bhttp {
 			ctx.respOk = respOk
 			redis_token.select(0).then(() => {
 				let token = req.get('x-token')
-				redis_token.get(`token:${token}`).then((tokendata) => {
+				redis_token.get(`abuetoken:${token}`).then((tokendata) => {
 					if (!tokendata) {
 						ctx.respErr('未登录', {})
 						return
@@ -722,13 +722,13 @@ class bws {
 module.exports.setToken = (token, data) => {
 	data.expiretime = moment().add(7, 'days').valueOf() + 1
 	redis_token.select(0).then(() => {
-		redis_token.set(`token:${token}`, JSON.stringify(data))
+		redis_token.set(`abuetoken:${token}`, JSON.stringify(data))
 	})
 }
 
 module.exports.delToken = (token) => {
 	redis_token.select(0).then(() => {
-		redis_token.del(`token:${token}`)
+		redis_token.del(`abuetoken:${token}`)
 	})
 }
 
