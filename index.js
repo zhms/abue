@@ -390,6 +390,7 @@ connect_redis = function (rediscfgs, index, callback) {
 		callback()
 		return
 	}
+
 	let url
 	if (rediscfgs[index].password && rediscfgs[index].length > 0) {
 		url = `redis://:${rediscfgs[index].password}@${rediscfgs[index].host}:${rediscfgs[index].port}`
@@ -448,6 +449,7 @@ connect_db = function (dbcfgs, index, subidx, callback) {
 		callback()
 		return
 	}
+    dbcfgs[index].count = dbcfgs[index].count || 1
 	if (subidx == dbcfgs[index].count) {
 		connect_db(dbcfgs, index + 1, 0, callback)
 		return
