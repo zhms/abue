@@ -22,6 +22,7 @@ const mysql = require('mysql')
 const libqqwry = require('lib-qqwry')
 const qqwry = libqqwry(true, `${__dirname}/ipdata.js`)
 const WebSocket = require('ws')
+const googleAuth = new (require('google_authenticator').authenticator)()
 const log4jscfg = {
 	appenders: {
 		out: {
@@ -449,7 +450,7 @@ connect_db = function (dbcfgs, index, subidx, callback) {
 		callback()
 		return
 	}
-    dbcfgs[index].count = dbcfgs[index].count || 1
+	dbcfgs[index].count = dbcfgs[index].count || 1
 	if (subidx == dbcfgs[index].count) {
 		connect_db(dbcfgs, index + 1, 0, callback)
 		return
@@ -819,6 +820,17 @@ module.exports.guid = (mask) => {
 
 module.exports.getIpLocation = (ip) => {
 	return qqwry.searchIP(ip).Country
+}
+module.exports.getGoogleAuthKey = (len) => {
+	len = len || 32
+	if (len < 8) len = 0
+	if (len > 64) len = 64
+	return googleAuth.createSecret(len)
+}
+
+module.exports.getGoogleAuthCode = (key) => {
+	if (!key) return null
+	return googleAuth.getCode(key)
 }
 
 module.exports.axios = axios
