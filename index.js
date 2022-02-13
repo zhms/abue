@@ -491,6 +491,11 @@ function dbexectue(sql, params, ctx, callback) {
 		callback = ctx
 		ctx = null
 	}
+	if (typeof params == 'function') {
+		callback = params
+		params = {}
+		ctx = null
+	}
 	let db = null
 	for (let i = 0; i < 10; i++) {
 		let subidx = Math.floor(Math.random() * 10000) % this.count
