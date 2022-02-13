@@ -526,6 +526,11 @@ function dbcallProc(name, params, ctx, callback) {
 		callback = ctx
 		ctx = null
 	}
+	if (typeof params == 'function') {
+		callback = params
+		params = {}
+		ctx = null
+	}
 	let sql = 'call ' + name + '('
 	for (let i = 0; i < params.length; i++) {
 		sql += '?'
