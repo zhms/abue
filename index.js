@@ -851,7 +851,7 @@ module.exports.sha1 = (data) => {
 module.exports.getSign = (data, secret) => {
 	let keys = []
 	for (let i in data) {
-		keys.push(i)
+		if (i != 'sign') keys.push(i)
 	}
 	keys.sort((a, b) => {
 		if (a == b) return 0
