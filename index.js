@@ -64,12 +64,14 @@ console.info = function (...args) {
 	logger.info.apply(logger, args)
 }
 process.on('uncaughtException', function (err) {
-	logger.error(err)
 	if (err.ctx && err.errmsg) {
+		logger.error(err.errmsg)
 		err.ctx.status(200).send({
 			code: 100,
 			msg: err.errmsg,
 		})
+	} else {
+		logger.error(err)
 	}
 })
 
