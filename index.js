@@ -392,9 +392,8 @@ connect_redis = function (rediscfgs, index, callback) {
 		callback()
 		return
 	}
-
 	let url
-	if (rediscfgs[index].password && rediscfgs[index].length > 0) {
+	if (rediscfgs[index].password && rediscfgs[index].password.length > 0) {
 		url = `redis://:${rediscfgs[index].password}@${rediscfgs[index].host}:${rediscfgs[index].port}`
 	} else {
 		url = `redis://${rediscfgs[index].host}:${rediscfgs[index].port}`
@@ -425,11 +424,11 @@ connect_redis = function (rediscfgs, index, callback) {
 		setInterval(() => {
 			connection.ping()
 		}, 5000)
-		let subconnection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
+		let subconnection = redis.createClient({ url})
 		subconnection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
 		subconnection.connect().then(() => {
 			subconnection.subscribe(`__ping__${rediscfgs[index].name}`, (msg) => {})
-			let pubconnection = redis.createClient({ url: `redis://${rediscfgs[index].host}:${rediscfgs[index].port}` })
+			let pubconnection = redis.createClient({ url })
 			pubconnection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
 			pubconnection.connect().then(() => {
 				setInterval(() => {
