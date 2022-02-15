@@ -68,7 +68,10 @@ process.on('uncaughtException', function (err) {
 		logger.error(err.errmsg)
 		err.ctx.status(200).send({
 			code: 100,
-			msg: err.errmsg,
+			data: {
+				errcode: errcode,
+				errmsg: err.errmsg,
+			},
 		})
 	} else {
 		logger.error(err)
@@ -561,7 +564,7 @@ function dbcallProc(name, params, ctx, callback) {
 				message = err.sqlMessage
 			}
 			if (ctx) {
-				throw { ctx: ctx, errmsg: message }
+				throw { ctx: ctx, data: { errcode: 0, errmsg: message } }
 			}
 			console.log(message)
 		}
@@ -571,8 +574,8 @@ function dbcallProc(name, params, ctx, callback) {
 			let s = r[0] || r
 			s = s || {}
 			if (s.errmsg) {
+				if (ctx) throw { ctx: ctx, data: { errcode: s.errcode, errmsg: s.errmsg } }
 				console.log(s.errmsg)
-				if (ctx) throw { ctx: ctx, errmsg: s.errmsg }
 				return
 			}
 			callback(s)
