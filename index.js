@@ -22,6 +22,7 @@ const mysql = require('mysql')
 const libqqwry = require('lib-qqwry')
 const qqwry = libqqwry(true, `${__dirname}/ipdata.js`)
 const WebSocket = require('ws')
+const crypto = require('crypto')
 const googleAuth = new (require('google_authenticator').authenticator)()
 const log4jscfg = {
 	appenders: {
@@ -841,6 +842,10 @@ module.exports.getGoogleAuthKey = (len) => {
 module.exports.getGoogleAuthCode = (key) => {
 	if (!key) return null
 	return googleAuth.getCode(key)
+}
+
+module.exports.sha1 = (data) => {
+	return crypto.createHash('sha1').update(data).digest('hex')
 }
 
 module.exports.axios = axios
