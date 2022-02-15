@@ -80,11 +80,10 @@ function respOk(data) {
 	})
 }
 
-function respErr(msg, data) {
+function respErr(errcode, errmsg) {
 	this.status(200).send({
 		code: 100,
-		msg: msg,
-		data: data,
+		data: { errcode, errmsg },
 	})
 }
 
@@ -424,7 +423,7 @@ connect_redis = function (rediscfgs, index, callback) {
 		setInterval(() => {
 			connection.ping()
 		}, 5000)
-		let subconnection = redis.createClient({ url})
+		let subconnection = redis.createClient({ url })
 		subconnection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
 		subconnection.connect().then(() => {
 			subconnection.subscribe(`__ping__${rediscfgs[index].name}`, (msg) => {})
