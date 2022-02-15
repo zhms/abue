@@ -848,4 +848,21 @@ module.exports.sha1 = (data) => {
 	return crypto.createHash('sha1').update(data).digest('hex')
 }
 
+module.exports.getSign = (data, secret) => {
+	let keys = []
+	for (let i in data) {
+		keys.push(i)
+	}
+	keys.sort((a, b) => {
+		if (a == b) return 0
+		return a < b ? -1 : 1
+	})
+	let str = ''
+	for (let i = 0; i < keys.length; i++) {
+		str += data[keys[i]]
+	}
+	str += secret
+	return crypto.createHash('sha1').update(str).digest('hex')
+}
+
 module.exports.axios = axios
