@@ -64,20 +64,19 @@ console.info = function (...args) {
 	logger.info.apply(logger, args)
 }
 process.on('uncaughtException', function (err) {
-	if (err.ctx && err.errmsg) {
-		logger.error(err.errmsg)
+	if (err.ctx && err.data) {
+		logger.error(err.data.errmsg)
 		err.ctx.status(200).send({
 			code: 100,
 			data: {
-				errcode: errcode,
-				errmsg: err.errmsg,
+				errcode: err.data.errcode,
+				errmsg: err.data.errmsg,
 			},
 		})
 	} else {
 		logger.error(err)
 	}
 })
-
 function respOk(data) {
 	this.status(200).send({
 		code: 200,
