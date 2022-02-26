@@ -290,11 +290,17 @@ class bhttp {
 				let token = req.get('x-token')
 				redis_token.get(`abuetoken:${token}`).then((tokendata) => {
 					if (!tokendata) {
-						ctx.respErr(-300, '未登录')
+						ctx.status(200).send({
+							code: 300,
+							data: { errcode: 0, errmsg: '未登录' },
+						})
 						return
 					}
 					if (tokendata.expiretime < moment().valueOf()) {
-						ctx.respErr(-300,'登录已过期')
+						ctx.status(200).send({
+							code: 300,
+							data: { errcode: 0, errmsg: '登录已过期' },
+						})
 						return
 					}
 					try {
@@ -329,11 +335,17 @@ class bhttp {
 				let token = req.get('x-token')
 				redis_token.get(`abuetoken:${token}`).then((tokendata) => {
 					if (!tokendata) {
-						ctx.respErr('未登录', {})
+						ctx.status(200).send({
+							code: 300,
+							data: { errcode: 0, errmsg: '未登录' },
+						})
 						return
 					}
 					if (tokendata.expiretime < moment().valueOf()) {
-						ctx.respErr('登录已过期', {})
+						ctx.status(200).send({
+							code: 300,
+							data: { errcode: 0, errmsg: '登录已过期' },
+						})
 						return
 					}
 					try {
