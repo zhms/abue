@@ -290,11 +290,11 @@ class bhttp {
 				let token = req.get('x-token')
 				redis_token.get(`abuetoken:${token}`).then((tokendata) => {
 					if (!tokendata) {
-						ctx.respErr('未登录', {})
+						ctx.respErr(-300, '未登录')
 						return
 					}
 					if (tokendata.expiretime < moment().valueOf()) {
-						ctx.respErr('登录已过期', {})
+						ctx.respErr(-300,'登录已过期')
 						return
 					}
 					try {
