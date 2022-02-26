@@ -250,8 +250,13 @@ class bhttp {
 				req.getNumberInRange = getNumberInRange
 				callback(ctx, req)
 			} catch (e) {
-				console.log('xxx', e)
-				if (typeof e == 'object') e = e.errmsg
+				if (typeof e == 'object') {
+					if (e.errmsg) {
+						e = e.errmsg
+					} else {
+						throw e
+					}
+				}
 				ctx.status(200).send({ code: 100, msg: e })
 			}
 		})
@@ -277,7 +282,13 @@ class bhttp {
 				req.getNumberInRange = getNumberInRange
 				callback(ctx, req)
 			} catch (e) {
-				if (typeof e == 'object') e = e.errmsg
+				if (typeof e == 'object') {
+					if (e.errmsg) {
+						e = e.errmsg
+					} else {
+						throw e
+					}
+				}
 				ctx.status(200).send({ code: 100, msg: e })
 			}
 		})
@@ -320,7 +331,13 @@ class bhttp {
 						req.getNumberInRange = getNumberInRange
 						callback(ctx, req, JSON.parse(tokendata))
 					} catch (e) {
-						if (typeof e == 'object') e = e.errmsg
+						if (typeof e == 'object') {
+							if (e.errmsg) {
+								e = e.errmsg
+							} else {
+								throw e
+							}
+						}
 						ctx.status(200).send({ code: 100, msg: e })
 					}
 				})
@@ -365,7 +382,13 @@ class bhttp {
 						req.getNumberInRange = getNumberInRange
 						callback(ctx, req, JSON.parse(tokendata))
 					} catch (e) {
-						if (typeof e == 'object') e = e.errmsg
+						if (typeof e == 'object') {
+							if (e.errmsg) {
+								e = e.errmsg
+							} else {
+								throw e
+							}
+						}
 						ctx.status(200).send({ code: 100, msg: e })
 					}
 				})
@@ -393,7 +416,13 @@ class bhttp {
 				req.getNumberInRange = getNumberInRange
 				callback(ctx, req)
 			} catch (e) {
-				if (typeof e == 'object') e = e.errmsg
+				if (typeof e == 'object') {
+					if (e.errmsg) {
+						e = e.errmsg
+					} else {
+						throw e
+					}
+				}
 				ctx.status(200).send({ code: 100, msg: e })
 			}
 		})
