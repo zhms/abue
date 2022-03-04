@@ -556,10 +556,10 @@ function dbexectue(sql, params, ctx, callback) {
 			if (!message) {
 				message = err.sqlMessage
 			}
-			console.log(message)
 			if (ctx) {
-				throw { ctx: ctx, errmsg: message }
+				throw { ctx: ctx, data:{errcode:0,errmsg: message} }
 			}
+            console.log(message)
 		}
 		if (callback) callback(result)
 	})
