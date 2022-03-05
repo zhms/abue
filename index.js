@@ -257,7 +257,7 @@ class bhttp {
 						throw e
 					}
 				}
-				ctx.status(200).send({ code: 100, msg: e })
+				ctx.status(200).send({ code: 100, data: { errcode: 0, errmsg: e } })
 			}
 		})
 	}
@@ -289,7 +289,7 @@ class bhttp {
 						throw e
 					}
 				}
-				ctx.status(200).send({ code: 100, msg: e })
+				ctx.status(200).send({ code: 100, data: { errcode: 0, errmsg: e } })
 			}
 		})
 	}
@@ -338,7 +338,7 @@ class bhttp {
 								throw e
 							}
 						}
-						ctx.status(200).send({ code: 100, msg: e })
+						ctx.status(200).send({ code: 100, data: { errcode: 0, errmsg: e } })
 					}
 				})
 			})
@@ -389,7 +389,7 @@ class bhttp {
 								throw e
 							}
 						}
-						ctx.status(200).send({ code: 100, msg: e })
+						ctx.status(200).send({ code: 100, data: { errcode: 0, errmsg: e } })
 					}
 				})
 			})
@@ -423,7 +423,7 @@ class bhttp {
 						throw e
 					}
 				}
-				ctx.status(200).send({ code: 100, msg: e })
+				ctx.status(200).send({ code: 100, data: { errcode: 0, errmsg: e } })
 			}
 		})
 	}
@@ -557,9 +557,9 @@ function dbexectue(sql, params, ctx, callback) {
 				message = err.sqlMessage
 			}
 			if (ctx) {
-				throw { ctx: ctx, data:{errcode:0,errmsg: message} }
+				throw { ctx: ctx, data: { errcode: 0, errmsg: message } }
 			}
-            console.log(message)
+			console.log(message)
 		}
 		if (callback) callback(result)
 	})
