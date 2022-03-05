@@ -789,6 +789,17 @@ module.exports.delToken = (token) => {
 	})
 }
 
+module.exports.getToken = (token, callback) => {
+	redis_token.select(0).then(() => {
+		redis_token.get(`abuetoken:${token}`).then((tokendata) => {
+			if (tokendata) {
+				tokendata = JSON.parse(tokendata)
+			}
+			callback(tokendata)
+		})
+	})
+}
+
 module.exports.init = (cfg, callback) => {
 	logger.level = cfg.log.level
 	let dbready
