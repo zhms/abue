@@ -40,6 +40,10 @@ server.ws.addMsgCallback('login', (ctx, data) => {
 			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,游戏Id不匹配' })
 			return
 		}
+		if (tokendata.CurrencyType != config.currency) {
+			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
+			return
+		}
 		let sql = 'select ScoreCny,ScoreVnd,ScoreThb,GameToken as Token,Custom from x_user where UserId = ?'
 		server.db.exectue(sql, [tokendata.UserId], ctx, (result) => {
 			let authdata = result[0]
@@ -291,6 +295,7 @@ function getXSetting(settingname, callback) {
 		callback(data[0].SettingValue)
 	})
 }
+
 function getGameId() {
 	return config.gameid
 }
