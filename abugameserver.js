@@ -44,7 +44,7 @@ server.ws.addMsgCallback('login', (ctx, data) => {
 			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
 			return
 		}
-		let sql = 'select ScoreCny,ScoreVnd,ScoreThb,GameToken as Token,Custom from x_user where UserId = ?'
+		let sql = 'select a.GameToken as Token,a.Custom,b.Score from x_user a INNER JOIN x_user_score b WHERE a.UserId = ?'
 		server.db.exectue(sql, [tokendata.UserId], ctx, (result) => {
 			let authdata = result[0]
 			if (authdata.Token) {
@@ -54,9 +54,7 @@ server.ws.addMsgCallback('login', (ctx, data) => {
 			let UserId = tokendata.UserId
 			let SellerId = tokendata.SellerId
 			tokendata = {}
-			if (CurrencyType == 1) tokendata.Score = authdata.ScoreCny
-			if (CurrencyType == 2) tokendata.Score = authdata.ScoreVnd
-			if (CurrencyType == 3) tokendata.Score = authdata.ScoreThb
+			tokendata.Score = authdata.Score
 			tokendata.SellerId = SellerId
 			tokendata.UserId = UserId
 			tokendata.CurrencyType = CurrencyType
