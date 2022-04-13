@@ -367,6 +367,7 @@ function updateUserControl(userinfo) {
 module.exports = {
 	init,
 	writeSocre,
+	writeSocreEx,
 	getSerial,
 	addMsgCallback,
 	addUserLeaveCallback,
