@@ -107,6 +107,30 @@ function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 		callback()
 	})
 }
+//serial 牌局号,gamerecord对局详情,结算数据userdata[userinfo,BetScore,WinScore,FlowScore,TaxScore]
+function writeSocreEx(serial, gamerecord, userdata, callback) {
+	let puserdata = []
+	for (let i = 0; i < userdata.length; i++) {
+		let ud = userdata[i]
+		ud.userinfo.Score += ud.WinScore
+		server.setToken(ud.userinfo.Token, ud.userinfo)
+		let data = {
+			UserId: ud.userinfo.UserId,
+			SellerId: ud.userinfo.SellerId,
+			Custom: ud.userinfo.Custom,
+			WinScore: ud.WinScore,
+			BetScore: ud.BetScore,
+			FlowScore: ud.FlowScore,
+			TaxScore: ud.TaxScore,
+			TotalScore: ud.userinfo.Score,
+		}
+		puserdata.push(data)
+	}
+	let procdata = [RoomId, config.serverid, serial, config.currency, JSON.stringify(gamerecord), JSON.stringify(puserdata)]
+	server.db.callProc('x_Game_WriteScore', procdata, () => {
+		callback()
+	})
+}
 
 function getSerial(callback) {
 	server.db.callProc('x_GameServer_GetSerial', (result) => {
