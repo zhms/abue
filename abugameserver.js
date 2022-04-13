@@ -95,7 +95,7 @@ function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 	server.db.exectue(sql, dbdata, () => {})
 }
 function getSerial(callback) {
-	server.db.callProc('GetSerial', (result) => {
+	server.db.callProc('x_GameServer_GetSerial', (result) => {
 		callback(result.Serial)
 	})
 }
