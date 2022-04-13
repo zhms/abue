@@ -2,9 +2,15 @@ const server = require('abue')
 let config
 let user_leave_callback = null
 let users = {}
-
+let RoomId
 function init(icfg) {
 	config = icfg
+	let strgameid = `${config.gameid}`
+	let strroomid = `${config.roomlevel}`
+	let strcurrency = `${config.currency}`
+	if (strroomid.length == 1) strroomid = '0' + strroomid
+	if (strcurrency.length == 1) strcurrency = '0' + strcurrency
+	RoomId = strgameid + strroomid + strcurrency
 }
 
 function getControlData(userinfo) {
@@ -84,16 +90,24 @@ function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 	}
 	userinfo.Score += winscore
 	server.setToken(userinfo.Token, userinfo)
-	let procdata = [userinfo.UserId, userinfo.CurrencyType, winscore, config.gameid, config.roomlevel, config.serverid, serial]
-	server.db.callProc('WriteScore', procdata, () => {
+	let userdata = [
+		{
+			UserId: userinfo.UserId,
+			SellerId: userinfo.SellerId,
+			Custom: userinfo.Custom,
+			WinScore: winscore,
+			BetScore: betscore,
+			FlowScore: flowscore,
+			TaxScore: taxscore,
+			TotalScore: userinfo.Score,
+		},
+	]
+	let procdata = [RoomId, config.serverid, serial, config.currency, JSON.stringify(gamerecord), JSON.stringify(userdata)]
+	server.db.callProc('x_Game_WriteScore', procdata, () => {
 		callback()
 	})
-	let sql = 'insert into x_game_detail(Serial,Data)values(?,?)'
-	server.db.exectue(sql, [serial, JSON.stringify(gamerecord)], () => {})
-	sql = 'insert into x_game_record(SellerId,Serial,UserId,GameId,Custom,CurrencyType,TotalScore,BetScore,WinScore,FlowScore,TaxScore)values(?,?,?,?,?,?,?,?,?,?,?)'
-	let dbdata = [userinfo.SellerId, serial, userinfo.UserId, config.gameid, userinfo.Custom, userinfo.CurrencyType, userinfo.Score, betscore, winscore, flowscore, taxscore]
-	server.db.exectue(sql, dbdata, () => {})
 }
+
 function getSerial(callback) {
 	server.db.callProc('x_GameServer_GetSerial', (result) => {
 		callback(result.Serial)
