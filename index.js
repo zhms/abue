@@ -105,15 +105,12 @@ function getString(field) {
 }
 function getStringNotNullAndEmpty(field) {
 	if (!this.body) this.body = this.query
-	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	if (typeof this.body[field] != 'string') throw `必须是字符串:${field}`
-	if (this.body[field].trim() == '') throw `请填写:${field}`
+	if (this.body[field] == undefined || this.body[field] == null || this.body[field].trim() == '') throw `请填写:${field}`
 	return this.body[field]
 }
 function getStringNotNull(field) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
-	if (typeof this.body[field] != 'string') throw `必须是字符串:${field}`
 	return this.body[field]
 }
 function getInt(field) {
@@ -485,7 +482,9 @@ connect_redis = function (rediscfgs, index, callback) {
 				redisdata[`pub${rediscfgs[index].name}`] = pubconnection
 				module.exports[rediscfgs[index].name] = connection
 				console.log(`Redis连接成功:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`)
-				connect_redis(rediscfgs, index + 1, callback)
+				connection.select(rediscfgs[index].db).then(() => {
+					connect_redis(rediscfgs, index + 1, callback)
+				})
 			})
 		})
 	})
