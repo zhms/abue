@@ -364,6 +364,44 @@ function updateUserControl(userinfo) {
 		server.db.exectue(sql, [userinfo.UserId], () => {})
 	}
 }
+
+function __getRoomConfig(callback) {
+	let sql = 'select config from x_game_room where GameId = ? and  RoomLevel = ? and Currency = ? '
+	server.db.exectue(sql, [config.gameid, config.roomlevel, config.currency], (dbresult) => {
+		if (dbresult.length > 0) {
+			dbresult = dbresult[0]
+			callback(JSON.parse(dbresult.config))
+		} else {
+			callback({})
+		}
+	})
+}
+
+function getRoomConfig(callback) {
+	__getRoomConfig(callback)
+	setInterval(() => {
+		__getRoomConfig(callback)
+	}, 60000)
+}
+
+function __getBlackWhiteDefine(callback) {
+	let sql = `select SettingValue from x_setting where SettingName = ?`
+	server.db.exectue(sql, ['SlotBlackWhileDefine'], (data) => {
+		if (data.length == 0) {
+			callback({})
+			return
+		}
+		callback(JSON.parse(data[0].SettingValue))
+	})
+}
+
+function getBlackWhiteDefine(callback) {
+	__getBlackWhiteDefine(callback)
+	setInterval(() => {
+		__getBlackWhiteDefine(callback)
+	}, 60000)
+}
+
 module.exports = {
 	init,
 	writeSocre,
@@ -393,4 +431,6 @@ module.exports = {
 	getRoomLevel,
 	getServerId,
 	updateUserControl,
+	getRoomConfig,
+	getBlackWhiteDefine,
 }
