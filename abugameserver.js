@@ -1,4 +1,7 @@
 const server = require('abue')
+const sqlite3 = require('sqlite3').verbose()
+const fs = require('fs')
+const { emitKeypressEvents } = require('readline')
 let config
 let user_leave_callback = null
 let users = {}
@@ -12,7 +15,6 @@ function init(icfg) {
 	if (strcurrency.length == 1) strcurrency = '0' + strcurrency
 	RoomId = strgameid + strroomid + strcurrency
 }
-
 function getControlData(userinfo) {
 	let sql = 'select * from x_user_control where UserId = ?'
 	server.db.exectue(sql, [userinfo.UserId], (controldata) => {
@@ -28,7 +30,6 @@ function getControlData(userinfo) {
 		server.setToken(userinfo.Token, userinfo)
 	})
 }
-
 server.ws.addMsgCallback('login', (ctx, data) => {
 	if (!data.Token) {
 		ctx.send('login_result', { errcode: 0, errmsg: '参数错误' })
@@ -131,7 +132,6 @@ function writeSocreEx(serial, gamerecord, userdata, callback) {
 		callback()
 	})
 }
-
 function getSerial(callback) {
 	server.db.callProc('x_GameServer_GetSerial', (result) => {
 		callback(result.Serial)
@@ -152,7 +152,6 @@ function addMsgCallback(msgid, callback) {
 		})
 	})
 }
-
 server.ws.addCloseCallback((ctx) => {
 	if (!ctx.token) return
 	if (ctx.UserId) delete users[ctx.UserId]
@@ -164,16 +163,13 @@ server.ws.addCloseCallback((ctx) => {
 		})
 	}
 })
-
 function addUserLeaveCallback(callback) {
 	user_leave_callback = callback
 }
-
 function saveUserData(userinfo, savekey, data) {
 	let sql = `replace into x_saved_data(UserId,SaveKey,data)values(?,?,?)`
 	server.db.exectue(sql, [userinfo.UserId, savekey, JSON.stringify(data)], () => {})
 }
-
 function getUserData(userinfo, savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = ? and GameId = 0 and RoomLevel = 0 and ServerId = 0 and SaveKey = ?'
 	server.db.exectue(sql, [userinfo.UserId, savekey], (data) => {
@@ -187,12 +183,10 @@ function getUserData(userinfo, savekey, callback) {
 		callback(data)
 	})
 }
-
 function saveUserGameData(userinfo, savekey, data) {
 	let sql = `replace into x_saved_data(UserId,Gameid,SaveKey,data)values(?,?,?,?)`
 	server.db.exectue(sql, [userinfo.UserId, config.gameid, savekey, JSON.stringify(data)], () => {})
 }
-
 function getUserGameData(userinfo, savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = ? and GameId = ? and RoomLevel = 0 and ServerId = 0 and SaveKey = ?'
 	server.db.exectue(sql, [userinfo.UserId, config.gameid, savekey], (data) => {
@@ -206,12 +200,10 @@ function getUserGameData(userinfo, savekey, callback) {
 		callback(data)
 	})
 }
-
 function saveUserRoomData(userinfo, savekey, data) {
 	let sql = `replace into x_saved_data(UserId,Gameid,RoomLevel,SaveKey,data)values(?,?,?,?,?)`
 	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, savekey, JSON.stringify(data)], () => {})
 }
-
 function getUserRoomData(userinfo, savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = ? and GameId = ? and RoomLevel = ? and ServerId = 0 and SaveKey = ?'
 	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, savekey], (data) => {
@@ -225,12 +217,10 @@ function getUserRoomData(userinfo, savekey, callback) {
 		callback(data)
 	})
 }
-
 function saveUserServerData(userinfo, savekey, data) {
 	let sql = `replace into x_saved_data(UserId,Gameid,RoomLevel,ServerId,SaveKey,data)values(?,?,?,?,?,?)`
 	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, config.serverid, savekey, JSON.stringify(data)], () => {})
 }
-
 function getUserServerData(userinfo, savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = ? and GameId = ? and RoomLevel = ? and ServerId = ? and SaveKey = ?'
 	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, config.serverid, savekey], (data) => {
@@ -244,12 +234,10 @@ function getUserServerData(userinfo, savekey, callback) {
 		callback(data)
 	})
 }
-
 function saveData(savekey, data) {
 	let sql = `replace into x_saved_data(SaveKey,data)values(?,?)`
 	server.db.exectue(sql, [savekey, JSON.stringify(data)], () => {})
 }
-
 function getData(savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = 0 and GameId = 0 and RoomLevel = 0 and ServerId = 0 and SaveKey = ?'
 	server.db.exectue(sql, [savekey], (data) => {
@@ -263,12 +251,10 @@ function getData(savekey, callback) {
 		callback(data)
 	})
 }
-
 function saveGameData(savekey, data) {
 	let sql = `replace into x_saved_data(Gameid,SaveKey,data)values(?,?,?)`
 	server.db.exectue(sql, [config.gameid, savekey, JSON.stringify(data)], () => {})
 }
-
 function getGameData(savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = 0 and GameId = ? and RoomLevel = 0 and ServerId = 0 and SaveKey = ?'
 	server.db.exectue(sql, [config.gameid, savekey], (data) => {
@@ -282,12 +268,10 @@ function getGameData(savekey, callback) {
 		callback(data)
 	})
 }
-
 function saveRoomData(savekey, data) {
 	let sql = `replace into x_saved_data(Gameid,RoomLevel,SaveKey,data)values(?,?,?,?)`
 	server.db.exectue(sql, [config.gameid, config.roomlevel, savekey, JSON.stringify(data)], () => {})
 }
-
 function getRoomData(savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = 0 and GameId = ? and RoomLevel = ? and ServerId = 0 and SaveKey = ?'
 	server.db.exectue(sql, [config.gameid, config.roomlevel, savekey], (data) => {
@@ -301,12 +285,10 @@ function getRoomData(savekey, callback) {
 		callback(data)
 	})
 }
-
 function saveServerData(savekey, data) {
 	let sql = `replace into x_saved_data(UserId,Gameid,RoomLevel,ServerId,SaveKey,data)values(?,?,?,?,?,?)`
 	server.db.exectue(sql, [0, config.gameid, config.roomlevel, config.serverid, savekey, JSON.stringify(data)], () => {})
 }
-
 function getServerData(savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = 0 and GameId = ? and RoomLevel = ? and ServerId = ? and SaveKey = ?'
 	server.db.exectue(sql, [config.gameid, config.roomlevel, config.serverid, savekey], (data) => {
@@ -320,11 +302,9 @@ function getServerData(savekey, callback) {
 		callback(data)
 	})
 }
-
 function randomIntRange(minNum, maxNum) {
 	return parseInt(Math.random() * (maxNum - minNum) + minNum, 10)
 }
-
 function getXSetting(settingname, callback) {
 	let sql = `select SettingValue from x_setting where SettingName = ?`
 	server.db.exectue(sql, [settingname], (data) => {
@@ -335,11 +315,9 @@ function getXSetting(settingname, callback) {
 		callback(data[0].SettingValue)
 	})
 }
-
 function getGameId() {
 	return config.gameid
 }
-
 function getRoomLevel() {
 	return config.roomlevel
 }
@@ -364,7 +342,6 @@ function updateUserControl(userinfo) {
 		server.db.exectue(sql, [userinfo.UserId], () => {})
 	}
 }
-
 function __getRoomConfig(callback) {
 	let sql = 'select config from x_game_room where GameId = ? and  RoomLevel = ? and Currency = ? '
 	server.db.exectue(sql, [config.gameid, config.roomlevel, config.currency], (dbresult) => {
@@ -376,14 +353,12 @@ function __getRoomConfig(callback) {
 		}
 	})
 }
-
 function getRoomConfig(callback) {
 	__getRoomConfig(callback)
 	setInterval(() => {
 		__getRoomConfig(callback)
 	}, 60000)
 }
-
 function __getBlackWhiteDefine(callback) {
 	let sql = `select SettingValue from x_setting where SettingName = ?`
 	server.db.exectue(sql, ['SlotBlackWhileDefine'], (data) => {
@@ -394,43 +369,194 @@ function __getBlackWhiteDefine(callback) {
 		callback(JSON.parse(data[0].SettingValue))
 	})
 }
-
 function getBlackWhiteDefine(callback) {
 	__getBlackWhiteDefine(callback)
 	setInterval(() => {
 		__getBlackWhiteDefine(callback)
 	}, 60000)
 }
+let slotgameconfig
+let slotgroupinfo
+let slotsampledb
+let slotsamplerecord = {} //样本记录
+let slotsampledata = {} //样本数据
+let slotblackdata
+let slotwhitedata
+let slotrtp
+let slotblackwhitedefine
+function slotInit(gameconfig) {
+	slotgameconfig = gameconfig
+	if (gameconfig.sampletype == 'db') {
+		let dbfile = './sample.db'
+		if (fs.existsSync(dbfile)) {
+			slotsampledb = new sqlite3.Database(dbfile)
+		} else {
+			dbfile = './game/sample.db'
+			if (fs.existsSync(dbfile)) {
+				slotsampledb = new sqlite3.Database(dbfile)
+			}
+		}
+		if (slotsampledb) {
+			slotsampledb.serialize(() => {
+				slotsampledb.each(`select data from info where info = 'info'`, (err, data) => {
+					slotgroupinfo = JSON.parse(data.data)
+				})
+			})
+		} else {
+			console.log('打开Slot样本失败')
+		}
+	}
+	if (gameconfig.sampletype == 'file') {
+		fs.readFile('./game/data/info.txt', (err, data) => {
+			if (!err) {
+				slotgroupinfo = JSON.parse(data.toString('utf-8'))
+			} else {
+				console.log('打开Slot样本失败')
+			}
+		})
+	}
+	module.exports.getRoomConfig((roomconfig) => {
+		slotrtp = roomconfig.rtp
+	})
+	module.exports.getBlackWhiteDefine((blackwhite) => {
+		slotblackwhitedefine = blackwhite
+	})
+	slotinited = true
+}
+function slotGetSampleData(stype, betscore, callback) {
+	if (!slotgameconfig) return
+	let datakey = `${stype}_${slotrtp}_${betscore}`
+	if (!slotsamplerecord[datakey]) {
+		module.exports.getServerData(datakey, (data) => {
+			data.groupindex = data.groupindex || 0
+			data.sampleindex = data.sampleindex || 0
+			slotsamplerecord[datakey] = data
+			slotGetSampleData(stype, betscore, callback)
+		})
+		return
+	}
+	let record = slotsamplerecord[datakey]
+	if (slotgameconfig.sampletype == 'file' && !slotsampledata[datakey]) {
+		fs.readFile(`./game/data/${stype}_rtp_${slotrtp}_${record.groupindex}.txt`, (err, filedata) => {
+			slotsampledata[datakey] = JSON.parse(filedata.toString('utf-8'))
+			slotGetSampleData(stype, betscore, callback)
+		})
+		return
+	}
+	if (record.sampleindex >= slotgroupinfo.group_count) {
+		record.groupindex = gameserver.randomIntRange(0, slotgroupinfo.group)
+		record.sampleindex = 0
+	}
+	if (slotgameconfig.sampletype == 'file') {
+		callback(slotsampledata[datakey].data[record.sampleindex].data)
+	}
+	if (slotgameconfig.sampletype == 'db') {
+		slotsampledb.serialize(() => {
+			slotsampledb.each(`select data from ${stype}_rtp_${slotrtp}_${record.groupindex} where id = ${record.sampleindex + 1}`, (err, data) => {
+				callback(JSON.parse(data.data))
+			})
+		})
+	}
+	record.sampleindex++
+	module.exports.saveServerData(datakey, record)
+}
+function slotGetBlackSampleData(callback) {
+	let idx = module.exports.randomIntRange(0, slotgroupinfo.group_count - 1)
+	if (slotgameconfig.sampletype == 'file') {
+		if (!slotblackdata) {
+			fs.readFile('./game/data/black.txt', (err, data) => {
+				slotblackdata = JSON.parse(data.toString('utf-8'))
+				slotGetBlackSampleData(callback)
+			})
+			return
+		}
+		callback(slotblackdata[idx])
+	}
+	if (slotgameconfig.sampletype == 'db') {
+		slotsampledb.serialize(() => {
+			slotsampledb.each(`select data from black where id = ${idx + 1}`, (err, data) => {
+				callback(JSON.parse(data.data))
+			})
+		})
+	}
+}
+function slotGetWhiteSampleData(callback) {
+	let idx = module.exports.randomIntRange(0, slotgroupinfo.group_count - 1)
+	if (slotgameconfig.sampletype == 'file') {
+		if (!slotwhitedata) {
+			fs.readFile('./game/data/white.txt', (err, data) => {
+				slotwhitedata = JSON.parse(data.toString('utf-8'))
+				slotGetWhiteSampleData(callback)
+			})
+			return
+		}
+		callback(slotwhitedata[idx])
+	}
+	if (slotgameconfig.sampletype == 'db') {
+		slotsampledb.serialize(() => {
+			slotsampledb.each(`select data from white where id = ${idx + 1}`, (err, data) => {
+				callback(JSON.parse(data.data))
+			})
+		})
+	}
+}
+
+function getControlSampleData(userinfo, callback) {
+	if (!userinfo.control) {
+		callback()
+	} else {
+		let percent = slotblackwhitedefine[userinfo.control.ControlLevel]
+		if (!percent) {
+			callback()
+		} else {
+			if (module.exports.randomIntRange(0, 100 - 1) > Math.floor(percent * 100)) {
+				callback()
+			} else {
+				if (userinfo.control.ControlLevel < 0) {
+					module.exports.slotGetBlackSampleData(callback)
+				}
+				if (userinfo.control.ControlLevel > 0) {
+					module.exports.slotGetWhiteSampleData(callback)
+				}
+			}
+		}
+	}
+}
 
 module.exports = {
-	init,
-	writeSocre,
-	writeSocreEx,
-	getSerial,
-	addMsgCallback,
-	addUserLeaveCallback,
-	getUserData,
-	getUserGameData,
-	getUserRoomData,
-	getUserServerData,
-	saveUserData,
-	saveUserGameData,
-	saveUserRoomData,
-	saveUserServerData,
-	getData,
-	getGameData,
-	getRoomData,
-	getServerData,
-	saveData,
-	saveGameData,
-	saveRoomData,
-	saveServerData,
-	randomIntRange,
-	getXSetting,
-	getGameId,
-	getRoomLevel,
-	getServerId,
-	updateUserControl,
-	getRoomConfig,
-	getBlackWhiteDefine,
+	init, //初始化服务器
+	writeSocre, //单个玩家写分
+	writeSocreEx, //批量写分
+	getSerial, //获取游戏牌局号
+	addMsgCallback, //监听游戏消息回调
+	addUserLeaveCallback, //监听玩家离开消息
+	saveUserData, //保存玩家级数据,任何游戏,任何房间,任何服务器共用
+	getUserData, //获取玩家级数据,任何游戏,任何房间,任何服务器共用
+	saveUserGameData, //保存玩家游戏级数据,同一个游戏,不同房间,不同服务器共用
+	getUserGameData, //获取玩家游戏级数据,同一个游戏,不同房间,不同服务器共用
+	saveUserRoomData, //保存玩家游房间级数据,同一个游戏,同一个房间,不同服务器共用
+	getUserRoomData, //获取玩家游房间级数据,同一个游戏,同一个房间,不同服务器共用
+	getUserServerData, //保存玩家服务器级数据,同一个游戏,同一个房间,同一个服务器
+	saveUserServerData, //获取玩家服务器级数据,同一个游戏,同一个房间,同一个服务器
+	saveData, //保存数据,全局共用
+	getData, //获取数据,全局共用
+	saveGameData, //保存数据,游戏共用
+	getGameData, //获取数据,游戏共用
+	saveRoomData, //保存数据,房间共用
+	getRoomData, //获取数据,房间共用
+	saveServerData, //保存数据,服务器共用
+	getServerData, //获取数据,服务器共用
+	randomIntRange, //范围内随机[min,max]
+	getXSetting, //获取设置
+	getGameId, //获取游戏id
+	getRoomLevel, //获取房间等级
+	getServerId, //获取服务器id
+	updateUserControl, //更新个控数据
+	getRoomConfig, //获取房间配置
+	getBlackWhiteDefine, //获取黑白名单定义
+	slotInit, //初始化slot
+	slotGetSampleData, //获得slot旋转样本
+	slotGetBlackSampleData, //获取黑名单样本
+	slotGetWhiteSampleData, //获取白名单样本
+	getControlSampleData, //获取受控样本
 }
