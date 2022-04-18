@@ -105,6 +105,7 @@ function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 	]
 	let procdata = [RoomId, config.serverid, serial, config.currency, JSON.stringify(gamerecord), JSON.stringify(userdata)]
 	server.db.callProc('x_Game_WriteScore', procdata, () => {
+		module.exports.updateUserControl(userinfo)
 		callback()
 	})
 }
@@ -129,6 +130,9 @@ function writeSocreEx(serial, gamerecord, userdata, callback) {
 	}
 	let procdata = [RoomId, config.serverid, serial, config.currency, JSON.stringify(gamerecord), JSON.stringify(puserdata)]
 	server.db.callProc('x_Game_WriteScore', procdata, () => {
+		for (let i = 0; i < userdata.length; i++) {
+			module.exports.updateUserControl(userdata[i].userinfo)
+		}
 		callback()
 	})
 }
@@ -417,7 +421,7 @@ function slotInit(gameconfig) {
 	}
 	module.exports.getRoomConfig((roomconfig) => {
 		slotrtp = roomconfig.rtp
-        slotrtp = slotrtp || 80
+		slotrtp = slotrtp || 80
 	})
 	module.exports.getBlackWhiteDefine((blackwhite) => {
 		slotblackwhitedefine = blackwhite
@@ -453,7 +457,10 @@ function slotGetSampleData(stype, betscore, callback) {
 	}
 	if (slotgameconfig.sampletype == 'db') {
 		slotsampledb.serialize(() => {
-            let sql = `select data from ${stype}_rtp_${slotrtp}_${record.groupindex} where id = ${record.sampleindex + 1}`
+			let sql = `select data from ${stype}_rtp_${slotrtp}_${record.groupindex} where id = ${record.sampleindex + 1}`
+			if (stype == 'buy') {
+				sql = `select data from ${stype}_rtp_${slotrtp} where id = ${record.sampleindex + 1}`
+			}
 			slotsampledb.each(sql, (err, data) => {
 				callback(JSON.parse(data.data))
 			})
