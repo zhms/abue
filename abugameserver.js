@@ -417,6 +417,7 @@ function slotInit(gameconfig) {
 	}
 	module.exports.getRoomConfig((roomconfig) => {
 		slotrtp = roomconfig.rtp
+        slotrtp = slotrtp || 80
 	})
 	module.exports.getBlackWhiteDefine((blackwhite) => {
 		slotblackwhitedefine = blackwhite
@@ -452,7 +453,8 @@ function slotGetSampleData(stype, betscore, callback) {
 	}
 	if (slotgameconfig.sampletype == 'db') {
 		slotsampledb.serialize(() => {
-			slotsampledb.each(`select data from ${stype}_rtp_${slotrtp}_${record.groupindex} where id = ${record.sampleindex + 1}`, (err, data) => {
+            let sql = `select data from ${stype}_rtp_${slotrtp}_${record.groupindex} where id = ${record.sampleindex + 1}`
+			slotsampledb.each(sql, (err, data) => {
 				callback(JSON.parse(data.data))
 			})
 		})
