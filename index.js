@@ -105,12 +105,15 @@ function getString(field) {
 }
 function getStringNotNullAndEmpty(field) {
 	if (!this.body) this.body = this.query
-	if (this.body[field] == undefined || this.body[field] == null || this.body[field].trim() == '') throw `请填写:${field}`
+	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
+	if (typeof this.body[field] != 'string') throw `必须是字符串:${field}`
+	if (this.body[field].trim() == '') throw `请填写:${field}`
 	return this.body[field]
 }
 function getStringNotNull(field) {
 	if (!this.body) this.body = this.query
 	if (this.body[field] == undefined || this.body[field] == null) throw `请填写:${field}`
+	if (typeof this.body[field] != 'string') throw `必须是字符串:${field}`
 	return this.body[field]
 }
 function getInt(field) {
@@ -625,6 +628,29 @@ function dbcallProc(name, params, ctx, callback) {
 	})
 }
 
+function dbpreparetransation(callback) {
+	let db = mysql.createConnection(this.cfg)
+	db.connect((err) => {
+		if (err) {
+			callback()
+		} else {
+			db.beginTransaction(() => {
+				callback(
+					db,
+					() => {
+						db.commit()
+						db.end()
+					},
+					() => {
+						db.rollback()
+						db.end()
+					}
+				)
+			})
+		}
+	})
+}
+
 function dbgetPageData(table, where, page, pagesize, ctx, callback) {
 	if (typeof ctx == 'function') {
 		callback = ctx
@@ -812,10 +838,12 @@ module.exports.init = (cfg, callback) => {
 		})
 		for (let i = 0; i < cfg.db.length; i++) {
 			module.exports[cfg.db[i].name] = {}
+			module.exports[cfg.db[i].name].cfg = cfg.db[i]
 			module.exports[cfg.db[i].name].count = cfg.db[i].count
 			module.exports[cfg.db[i].name].name = cfg.db[i].name
 			module.exports[cfg.db[i].name].exectue = dbexectue
 			module.exports[cfg.db[i].name].callProc = dbcallProc
+			module.exports[cfg.db[i].name].beginTransaction = dbpreparetransation
 			module.exports[cfg.db[i].name].getPageData = dbgetPageData
 			module.exports[cfg.db[i].name].makeWhere = dbmakeWhere
 		}
