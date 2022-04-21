@@ -493,10 +493,11 @@ function slotGetBlackSampleData(callback) {
 	}
 }
 function slotGetWhiteSampleData(callback) {
+	let white_table_name = `white_${slotsamplenum}_${slotrtp}`
 	let idx = module.exports.randomIntRange(0, slotgroupinfo.group_count - 1)
 	if (slotgameconfig.sampletype == 'file') {
 		if (!slotwhitedata) {
-			fs.readFile(`./game/data/white_${slotsamplenum}_${slotrtp}.txt`, (err, data) => {
+			fs.readFile(`./game/data/${white_table_name}.txt`, (err, data) => {
 				slotwhitedata = JSON.parse(data.toString('utf-8'))
 				slotGetWhiteSampleData(callback)
 			})
@@ -506,7 +507,7 @@ function slotGetWhiteSampleData(callback) {
 	}
 	if (slotgameconfig.sampletype == 'db') {
 		slotsampledb.serialize(() => {
-			slotsampledb.each(`select data from white_${slotsamplenum}_${slotrtp} where id = ${idx + 1}`, (err, data) => {
+			slotsampledb.each(`select data from ${white_table_name} where id = ${idx + 1}`, (err, data) => {
 				callback(JSON.parse(data.data))
 			})
 		})
