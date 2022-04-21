@@ -387,6 +387,7 @@ let slotsampledata = {} //样本数据
 let slotblackdata
 let slotwhitedata
 let slotrtp
+let slotsamplenum
 let slotblackwhitedefine
 function slotInit(gameconfig) {
 	slotgameconfig = gameconfig
@@ -421,7 +422,9 @@ function slotInit(gameconfig) {
 	}
 	module.exports.getRoomConfig((roomconfig) => {
 		slotrtp = roomconfig.rtp
+		slotsamplenum = roomconfig.samplenum
 		slotrtp = slotrtp || 80
+		slotsamplenum = slotsamplenum || 1
 	})
 	module.exports.getBlackWhiteDefine((blackwhite) => {
 		slotblackwhitedefine = blackwhite
@@ -442,7 +445,7 @@ function slotGetSampleData(stype, betscore, callback) {
 	}
 	let record = slotsamplerecord[datakey]
 	if (slotgameconfig.sampletype == 'file' && !slotsampledata[datakey]) {
-		fs.readFile(`./game/data/${stype}_rtp_${slotrtp}_${record.groupindex}.txt`, (err, filedata) => {
+		fs.readFile(`./game/data/${stype}_rtp_${slotsamplenum}_${slotrtp}_${record.groupindex}.txt`, (err, filedata) => {
 			slotsampledata[datakey] = JSON.parse(filedata.toString('utf-8'))
 			slotGetSampleData(stype, betscore, callback)
 		})
@@ -457,9 +460,9 @@ function slotGetSampleData(stype, betscore, callback) {
 	}
 	if (slotgameconfig.sampletype == 'db') {
 		slotsampledb.serialize(() => {
-			let sql = `select data from ${stype}_rtp_${slotrtp}_${record.groupindex} where id = ${record.sampleindex + 1}`
+			let sql = `select data from ${stype}_rtp_${slotsamplenum}_${slotrtp}_${record.groupindex} where id = ${record.sampleindex + 1}`
 			if (stype == 'buy') {
-				sql = `select data from ${stype}_rtp_${slotrtp} where id = ${record.sampleindex + 1}`
+				sql = `select data from ${stype}_rtp_${slotsamplenum}_${slotrtp} where id = ${record.sampleindex + 1}`
 			}
 			slotsampledb.each(sql, (err, data) => {
 				callback(JSON.parse(data.data))
@@ -493,7 +496,7 @@ function slotGetWhiteSampleData(callback) {
 	let idx = module.exports.randomIntRange(0, slotgroupinfo.group_count - 1)
 	if (slotgameconfig.sampletype == 'file') {
 		if (!slotwhitedata) {
-			fs.readFile('./game/data/white.txt', (err, data) => {
+			fs.readFile(`./game/data/white_${slotsamplenum}_${slotrtp}.txt`, (err, data) => {
 				slotwhitedata = JSON.parse(data.toString('utf-8'))
 				slotGetWhiteSampleData(callback)
 			})
@@ -503,7 +506,7 @@ function slotGetWhiteSampleData(callback) {
 	}
 	if (slotgameconfig.sampletype == 'db') {
 		slotsampledb.serialize(() => {
-			slotsampledb.each(`select data from white where id = ${idx + 1}`, (err, data) => {
+			slotsampledb.each(`select data from white_${slotsamplenum}_${slotrtp} where id = ${idx + 1}`, (err, data) => {
 				callback(JSON.parse(data.data))
 			})
 		})
