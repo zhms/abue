@@ -1,7 +1,7 @@
 const server = require('abue')
 const sqlite3 = require('sqlite3').verbose()
 const fs = require('fs')
-const { emitKeypressEvents } = require('readline')
+const moment = require('moment')
 let config
 let user_leave_callback = null
 let users = {}
@@ -43,42 +43,33 @@ server.ws.addMsgCallback('login', (ctx, data) => {
 		}
 		server.redis.del(tokenkey)
 		tokendata = JSON.parse(tokendata)
-		if (tokendata.GameId != config.gameid) {
-			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,游戏Id不匹配' })
+		if (tokendata.RoomId != RoomId) {
+			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,游戏房间不配' })
 			return
 		}
-		if (tokendata.CurrencyType != config.currency) {
-			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
-			return
-		}
-		let sql = 'select GameToken as Token,Custom,Score,Currency from x_user where UserId = ?'
-		server.db.exectue(sql, [tokendata.UserId], ctx, (result) => {
-			let authdata = result[0]
-			if (authdata.Token) {
-				server.delToken(authdata.Token)
-			}
-			if (tokendata.CurrencyType != authdata.Currency) {
+		let procname = 'UserManage_Sys_tb_User_GetModel'
+		let procdata = [tokendata.UserId, -1, '']
+		server.db.callProc(procname, procdata, (userdata) => {
+			if (userdata.CurrencyID != config.currency) {
 				ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
 				return
 			}
-			let CurrencyType = tokendata.CurrencyType
-			let UserId = tokendata.UserId
-			let SellerId = tokendata.SellerId
-			tokendata = {}
-			tokendata.Score = authdata.Score
-			tokendata.SellerId = SellerId
-			tokendata.UserId = UserId
-			tokendata.CurrencyType = CurrencyType
-			tokendata.Token = server.guid()
-			tokendata.Custom = authdata.Custom
-			server.setToken(tokendata.Token, tokendata)
-			getControlData(tokendata)
-			sql = 'update x_user set GameLoginToken = null,GameToken = ? where UserId = ?'
-			server.db.exectue(sql, [tokendata.Token, tokendata.UserId], ctx, () => {
+			let wstokendata = {
+				Token: server.guid(),
+				UserId: tokendata.UserId,
+				AccessUser: tokendata.AccessUser,
+				RemainAmount: userdata.RemainAmount,
+			}
+			let now = moment().format('YYYY-MM-DD HH:mm:ss')
+			procname = 'XPlatform_UserManage_Sys_tb_User_Login'
+			procdata = [tokendata.UserId, now, ctx.ip, 1, 1, '', '', '', '', '', wstokendata.Token, RoomId, RoomId, userdata.RemainAmount]
+			server.db.callProc(procname, procdata, () => {
 				ctx.token = tokendata.Token
 				ctx.UserId = tokendata.UserId
 				users[tokendata.UserId] = ctx
-				ctx.send('login_result', { Score: tokendata.Score })
+				server.setToken(tokendata.Token, tokendata)
+				getControlData(tokendata)
+				ctx.send('login_result', { RemainAmount: userdata.RemainAmount })
 			})
 		})
 	})
