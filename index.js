@@ -555,6 +555,7 @@ function dbexectue(sql, params, ctx, callback) {
 		console.log(`执行数据库失败,无可用数据连接:[${sql}][${JSON.stringify(params)}]`)
 		return
 	}
+   if(this.cfg.log) console.log(`${sql} ${JSON.stringify(params).replace('[', '(').replace(']', ')')}`)
 	db.query(sql, params, (err, result) => {
 		if (err) {
 			let message = err.message
@@ -602,6 +603,7 @@ function dbcallProc(name, params, ctx, callback) {
 		console.log(`执行数据库失败,无可用数据连接:[${sql}][${JSON.stringify(params)}]`)
 		return
 	}
+    if(this.cfg.log) console.log(`call ${name}${JSON.stringify(params).replace('[', '(').replace(']', ')')}`)
 	db.query(sql, params, (err, result) => {
 		if (err) {
 			let message = err.message
