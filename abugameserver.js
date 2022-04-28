@@ -41,7 +41,7 @@ server.ws.addMsgCallback('login', (ctx, data) => {
 		let procname = 'UserManage_Sys_tb_User_GetModel'
 		let procdata = [tokendata.UserId, -1, '']
 		server.db.callProc(procname, procdata, (userdata) => {
-            //console.log(userdata)
+			//console.log(userdata)
 			if (userdata.CurrencyID != config.currency) return ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
 			if (userdata.GameToken && userdata.GameToken.length > 0) server.delToken(userdata.GameToken)
 			let wstokendata = {
@@ -182,7 +182,7 @@ function getUserData(userinfo, savekey, callback) {
 		} else {
 			data = data[0].data
 		}
-		if (data == null) data = '{}'
+		data = data || '{}'
 		data = JSON.parse(data)
 		callback(data)
 	})
@@ -199,7 +199,7 @@ function getUserGameData(userinfo, savekey, callback) {
 		} else {
 			data = data[0].data
 		}
-		if (data == null) data = '{}'
+		data = data || '{}'
 		data = JSON.parse(data)
 		callback(data)
 	})
