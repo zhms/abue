@@ -1,6 +1,7 @@
 const server = require('abue')
 const sqlite3 = require('sqlite3').verbose()
 const fs = require('fs')
+const moment = require('moment')
 let config
 let user_leave_callback = null
 let users = {}
@@ -30,54 +31,37 @@ function getControlData(userinfo) {
 	})
 }
 server.ws.addMsgCallback('login', (ctx, data) => {
-	if (!data.Token) {
-		ctx.send('login_result', { errcode: 0, errmsg: '参数错误' })
-		return
-	}
+	if (!data.Token) ctx.send('login_result', { errcode: 0, errmsg: '参数错误' })
 	let tokenkey = `GameLoginToken:${data.Token}`
 	server.redis.get(tokenkey).then((tokendata) => {
-		if (!tokendata) {
-			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,token验证失败' })
-			return
-		}
+		if (!tokendata) return ctx.send('login_result', { errcode: 0, errmsg: '登录失败,token验证失败' })
 		server.redis.del(tokenkey)
 		tokendata = JSON.parse(tokendata)
-		if (tokendata.GameId != config.gameid) {
-			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,游戏Id不匹配' })
-			return
-		}
-		if (tokendata.CurrencyType != config.currency) {
-			ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
-			return
-		}
-		let sql = 'select GameToken as Token,Custom,Score,Currency from x_user where UserId = ?'
-		server.db.exectue(sql, [tokendata.UserId], ctx, (result) => {
-			let authdata = result[0]
-			if (authdata.Token) {
-				server.delToken(authdata.Token)
+		if (tokendata.RoomId != RoomId) return ctx.send('login_result', { errcode: 0, errmsg: '登录失败,游戏房间不配' })
+		let procname = 'UserManage_Sys_tb_User_GetModel'
+		let procdata = [tokendata.UserId, -1, '']
+		server.db.callProc(procname, procdata, (userdata) => {
+            //console.log(userdata)
+			if (userdata.CurrencyID != config.currency) return ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
+			if (userdata.GameToken && userdata.GameToken.length > 0) server.delToken(userdata.GameToken)
+			let wstokendata = {
+				Token: server.guid(),
+				AccessSellerID: userdata.AccessSellerID,
+				AccessUser: userdata.AccessUser,
+				UserId: tokendata.UserId,
+				Score: userdata.RemainAmount,
+				WinLost: userdata.WinLost,
 			}
-			if (tokendata.CurrencyType != authdata.Currency) {
-				ctx.send('login_result', { errcode: 0, errmsg: '登录失败,币种不匹配' })
-				return
-			}
-			let CurrencyType = tokendata.CurrencyType
-			let UserId = tokendata.UserId
-			let SellerId = tokendata.SellerId
-			tokendata = {}
-			tokendata.Score = authdata.Score
-			tokendata.SellerId = SellerId
-			tokendata.UserId = UserId
-			tokendata.CurrencyType = CurrencyType
-			tokendata.Token = server.guid()
-			tokendata.Custom = authdata.Custom
-			server.setToken(tokendata.Token, tokendata)
-			getControlData(tokendata)
-			sql = 'update x_user set GameLoginToken = null,GameToken = ? where UserId = ?'
-			server.db.exectue(sql, [tokendata.Token, tokendata.UserId], ctx, () => {
-				ctx.token = tokendata.Token
-				ctx.UserId = tokendata.UserId
-				users[tokendata.UserId] = ctx
-				ctx.send('login_result', { Score: tokendata.Score })
+			let now = moment().format('YYYY-MM-DD HH:mm:ss')
+			procname = 'XPlatform_UserManage_Sys_tb_User_Login'
+			procdata = [wstokendata.UserId, now, ctx.ip, 1, 1, '', '', '', '', '', wstokendata.Token, RoomId, RoomId, userdata.RemainAmount]
+			server.db.callProc(procname, procdata, () => {
+				ctx.token = wstokendata.Token
+				ctx.UserId = wstokendata.UserId
+				users[wstokendata.UserId] = ctx
+				server.setToken(wstokendata.Token, wstokendata)
+				getControlData(wstokendata)
+				ctx.send('login_result', { RemainAmount: userdata.RemainAmount })
 			})
 		})
 	})
@@ -88,24 +72,43 @@ function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 		callback = taxscore
 		taxscore = 0
 	}
+	let now = moment().format('YYYY-MM-DD HH:mm:ss')
+	let userdata = []
+	userdata.push(userinfo.UserId) // -- 用户ID
+	userdata.push(1) //,1 -- 流水ID 每批数据从1开始
+	userdata.push(1) //-- 下注数
+	userdata.push(betscore) //-- 下注金额
+	userdata.push(0) // -- 下注抽水
+	userdata.push(winscore) //  -- 输赢数
+	userdata.push(0) // -- 控制输赢数
+	userdata.push(0) // -- 赢数
+	userdata.push(taxscore) // -- 税收
+	userdata.push(flowscore) // -- 单边流水
+	userdata.push(flowscore) // -- 双边流水
+	userdata.push(flowscore) // -- 输赢流水
+	userdata.push(userinfo.WinLost + winscore) //  -- 结算后历史累计输赢
+	userdata.push(userinfo.Score) // -- 下注前余额
+	userdata.push(userinfo.Score + winscore) // -- 结算后余额
+	userdata.push(`\\'${JSON.stringify(gamerecord)}\\'`) //,"{}"  -- 有详细数据json  包含详细下注情况和开牌
+	userdata.push(`"${users[userinfo.UserId].ip}"`) // -- 外网IP
+	userdata.push(userinfo.AccessSellerID) // ,1 --  接入商户ID  来源 Sys_tb_AccessSeller的AccessSellerID
+	userdata.push(`"${userinfo.AccessUser}"`) //,'1837397' --  接入商户用户  来源 Sys_tb_AccessSeller的AccessUser
+	userdata.push(0) //,0   --  接入商户用户ID  来源 Sys_tb_AccessSeller的AccessUserID 【可选】
+	userdata.push(config.serverid) // ,9999 -- 服务器ID
+	let struserdata = '('.concat(userdata)
+	struserdata = struserdata.concat(')')
 	userinfo.Score += winscore
+	userinfo.WinLost += winscore
 	server.setToken(userinfo.Token, userinfo)
-	let userdata = [
-		{
-			UserId: userinfo.UserId,
-			SellerId: userinfo.SellerId,
-			Custom: userinfo.Custom,
-			WinScore: winscore,
-			BetScore: betscore,
-			FlowScore: flowscore,
-			TaxScore: taxscore,
-			TotalScore: userinfo.Score,
-		},
-	]
-	let procdata = [RoomId, config.serverid, serial, config.currency, JSON.stringify(gamerecord), JSON.stringify(userdata)]
-	server.db.callProc('x_Game_WriteScore', procdata, () => {
-		module.exports.updateUserControl(userinfo)
-		callback()
+	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
+	server.xgameflow.exectue(sqlstr, [], () => {
+		userdata.splice(15, 1)
+		struserdata = '('.concat(userdata)
+		struserdata = struserdata.concat(')')
+		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
+		server.db.exectue(sqlstr, [], () => {
+			callback()
+		})
 	})
 }
 //serial 牌局号,gamerecord对局详情,结算数据userdata[userinfo,BetScore,WinScore,FlowScore,TaxScore]
@@ -142,27 +145,25 @@ function getSerial(callback) {
 }
 function addMsgCallback(msgid, callback) {
 	server.ws.addMsgCallback(msgid, (ctx, data) => {
-		if (!ctx.token) {
-			server.ws.close(ctx)
-			return
-		}
+		if (!ctx.token) return server.ws.close(ctx)
 		server.getToken(ctx.token, (tokendata) => {
-			if (!tokendata) {
-				ctx.send(msgid, { errcode: 0, errmsg: '未登录' })
-				return
-			}
+			if (!tokendata) return ctx.send(msgid, { errcode: 0, errmsg: '未登录' })
 			callback(ctx, data, tokendata)
 		})
 	})
 }
 server.ws.addCloseCallback((ctx) => {
 	if (!ctx.token) return
-	if (ctx.UserId) delete users[ctx.UserId]
+	if (ctx.UserId) {
+		delete users[ctx.UserId]
+		let procname = 'XPlatform_UserManage_Sys_tb_User_Logout'
+		let procdata = [ctx.UserId]
+		server.db.callProc(procname, procdata, () => {})
+	}
 	if (user_leave_callback) {
 		server.getToken(ctx.token, (tokendata) => {
 			server.delToken(ctx.token)
-			if (!tokendata) return
-			user_leave_callback(tokendata)
+			if (!tokendata) return user_leave_callback(tokendata)
 		})
 	}
 })
@@ -464,7 +465,9 @@ function slotGetSampleData(stype, betscore, callback) {
 				sql = `select data from ${stype}_rtp_${slotsamplenum}_${slotrtp} where id = ${record.sampleindex + 1}`
 			}
 			slotsampledb.each(sql, (err, data) => {
-				callback(JSON.parse(data.data))
+				data = JSON.parse(data.data)
+				if (typeof data == 'string') data = JSON.parse(data)
+				callback(data)
 			})
 		})
 	}
@@ -507,7 +510,9 @@ function slotGetWhiteSampleData(callback) {
 	if (slotgameconfig.sampletype == 'db') {
 		slotsampledb.serialize(() => {
 			slotsampledb.each(`select data from ${white_table_name} where id = ${idx + 1}`, (err, data) => {
-				callback(JSON.parse(data.data))
+				data = JSON.parse(data.data)
+				if (typeof data == 'string') data = JSON.parse(data)
+				callback(data)
 			})
 		})
 	}
