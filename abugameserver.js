@@ -65,6 +65,33 @@ server.ws.addMsgCallback('login', (ctx, data) => {
 		})
 	})
 })
+server.ws.addMsgCallback('logout', (ctx) => {
+	if (!ctx.token) return
+    let token = ctx.token
+    delete ctx.token
+	if (user_leave_callback) {
+		server.getToken(token, (tokendata) => {
+			server.delToken(token)
+			if (!tokendata) return
+			user_leave_callback(tokendata)
+            if (ctx.UserId)
+            {
+                delete users[ctx.UserId]
+                server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
+                delete ctx.UserId
+            }
+		})
+	}
+    else
+    {
+        if (ctx.UserId)
+        {
+            delete users[ctx.UserId]
+            server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
+            delete ctx.UserId
+        }
+    }
+})
 //玩家信息,score金币变化值,gamedata游戏记录,taxscore税收
 function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord, taxscore, callback) {
 if (typeof taxscore == 'function') {
@@ -156,14 +183,30 @@ function addMsgCallback(msgid, callback) {
 }
 server.ws.addCloseCallback((ctx) => {
 	if (!ctx.token) return
-	if (ctx.UserId) delete users[ctx.UserId]
+    let token = ctx.token
+    delete ctx.token
 	if (user_leave_callback) {
-		server.getToken(ctx.token, (tokendata) => {
-			server.delToken(ctx.token)
+		server.getToken(token, (tokendata) => {
+			server.delToken(token)
 			if (!tokendata) return
 			user_leave_callback(tokendata)
+            if (ctx.UserId)
+            {
+                delete users[ctx.UserId]
+                server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
+                delete ctx.UserId
+            }
 		})
 	}
+    else
+    {
+        if (ctx.UserId)
+        {
+            delete users[ctx.UserId]
+            server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
+            delete ctx.UserId
+        }
+    }
 })
 function addUserLeaveCallback(callback) {
 	user_leave_callback = callback
