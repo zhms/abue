@@ -494,47 +494,45 @@ connect_redis = function (rediscfgs, index, callback) {
 }
 let dbdata = {}
 let connect_db
-connect_db = function (dbcfgs, index, subidx, callback) {
-	if (dbcfgs.length == index) {
-		callback()
+connect_db = function (dbcfgs, index, subidx, callback, reconnect) {
+	if (dbcfgs.length == index ) {
+		if(!reconnect) callback()
 		return
 	}
 	dbcfgs[index].count = dbcfgs[index].count || 1
 	if (subidx == dbcfgs[index].count) {
-		connect_db(dbcfgs, index + 1, 0, callback)
+		if(!reconnect) connect_db(dbcfgs, index + 1, 0, callback)
 		return
 	}
 	let key = `${dbcfgs[index].name}_${subidx}`
 	let db = mysql.createConnection(dbcfgs[index])
 	db.connect((err) => {
 		if (err) {
-			setTimeout(() => {
-				console.log(`连接数据库失败:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
-				delete dbdata[key]
-				connect_db(dbcfgs, index, subidx, callback)
-			}, 10000)
+            db = null
+			console.log(`连接数据库失败:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
+			if (config.release) {
+				setTimeout(() => {
+					connect_db(dbcfgs, index, subidx, callback, reconnect)
+				}, 10000)
+			}
 		} else {
 			pingInterval = setInterval(() => {
-				db.ping((err) => {
-					if (err) {
-						console.log(`连接数据库断开连接:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}]:${subidx}`)
-						delete dbdata[key]
-						connect_db(dbcfgs, index, subidx, callback)
-					}
-				})
+				db.ping((err) => {})
 			}, 10000)
 			db.on('error', () => {
-				console.log(`连接数据库失败:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
-				delete dbdata[key]
-				connect_db(dbcfgs, index, subidx, callback)
+                clearInterval(pingInterval)
+                pingInterval = null
+                db = null
+                delete dbdata[key]
+				console.log(`数据库断开连接:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
+				if (config.release) connect_db(dbcfgs, index, subidx, callback,true)
 			})
 			dbdata[key] = db
 			console.log(`连接数据库成功:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
-			connect_db(dbcfgs, index, subidx + 1, callback)
+			if(!reconnect) connect_db(dbcfgs, index, subidx + 1, callback)
 		}
 	})
 }
-
 function dbexectue(sql, params, ctx, callback) {
 	if (typeof ctx == 'function') {
 		callback = ctx
