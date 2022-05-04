@@ -555,7 +555,7 @@ function dbexectue(sql, params, ctx, callback) {
 		console.log(`执行数据库失败,无可用数据连接:[${sql}][${JSON.stringify(params)}]`)
 		return
 	}
-   if(this.cfg.log) console.log(`${sql} ${JSON.stringify(params).replace('[', '(').replace(']', ')')}`)
+	if (this.cfg.log) console.log(`${sql} ${JSON.stringify(params).replace('[', '(').replace(']', ')')}`)
 	db.query(sql, params, (err, result) => {
 		if (err) {
 			let message = err.message
@@ -603,7 +603,7 @@ function dbcallProc(name, params, ctx, callback) {
 		console.log(`执行数据库失败,无可用数据连接:[${sql}][${JSON.stringify(params)}]`)
 		return
 	}
-    if(this.cfg.log) console.log(`call ${name}${JSON.stringify(params).replace('[', '(').replace(']', ')')}`)
+	if (this.cfg.log) console.log(`call ${name}${JSON.stringify(params).replace('[', '(').replace(']', ')')}`)
 	db.query(sql, params, (err, result) => {
 		if (err) {
 			let message = err.message
@@ -866,7 +866,6 @@ module.exports.init = (cfg, callback) => {
 			redis_token.on('error', (err) => console.log(`Redis连接失败:[token:${cfg.token.host}:${cfg.token.port}]`))
 			redis_token.connect().then(function () {
 				console.log(`Redis连接成功:[token:${cfg.token.host}:${cfg.token.port}]`)
-				redis_token.select(1)
 				setInterval(() => {
 					redis_token.ping()
 				}, 5000)

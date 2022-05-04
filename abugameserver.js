@@ -67,34 +67,30 @@ server.ws.addMsgCallback('login', (ctx, data) => {
 })
 server.ws.addMsgCallback('logout', (ctx) => {
 	if (!ctx.token) return
-    let token = ctx.token
-    delete ctx.token
+	let token = ctx.token
+	delete ctx.token
 	if (user_leave_callback) {
 		server.getToken(token, (tokendata) => {
 			server.delToken(token)
 			if (!tokendata) return
 			user_leave_callback(tokendata)
-            if (ctx.UserId)
-            {
-                delete users[ctx.UserId]
-                server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
-                delete ctx.UserId
-            }
+			if (ctx.UserId) {
+				delete users[ctx.UserId]
+				server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout', [ctx.UserId], () => {})
+				delete ctx.UserId
+			}
 		})
+	} else {
+		if (ctx.UserId) {
+			delete users[ctx.UserId]
+			server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout', [ctx.UserId], () => {})
+			delete ctx.UserId
+		}
 	}
-    else
-    {
-        if (ctx.UserId)
-        {
-            delete users[ctx.UserId]
-            server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
-            delete ctx.UserId
-        }
-    }
 })
 //玩家信息,score金币变化值,gamedata游戏记录,taxscore税收
 function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord, taxscore, callback) {
-if (typeof taxscore == 'function') {
+	if (typeof taxscore == 'function') {
 		callback = taxscore
 		taxscore = 0
 	}
@@ -139,26 +135,56 @@ if (typeof taxscore == 'function') {
 }
 //serial 牌局号,gamerecord对局详情,结算数据userdata[userinfo,BetScore,WinScore,FlowScore,TaxScore]
 function writeSocreEx(serial, gamerecord, userdata, callback) {
-	let puserdata = []
+	let now = moment().format('YYYY-MM-DD HH:mm:ss')
+	let flowuserdata = ''
+	let scoreuserdata = ''
 	for (let i = 0; i < userdata.length; i++) {
 		let ud = userdata[i]
+		let arruserdata = []
+		arruserdata.push(ud.userinfo.UserId) // -- 用户ID
+		arruserdata.push(1) //,1 -- 流水ID 每批数据从1开始
+		arruserdata.push(1) //-- 下注数
+		arruserdata.push(ud.BetScore) //-- 下注金额
+		arruserdata.push(0) // -- 下注抽水
+		arruserdata.push(ud.WinScore) //  -- 输赢数
+		arruserdata.push(0) // -- 控制输赢数
+		arruserdata.push(0) // -- 赢数
+		arruserdata.push(ud.TaxScore) // -- 税收
+		arruserdata.push(ud.FlowScore) // -- 单边流水
+		arruserdata.push(ud.FlowScore) // -- 双边流水
+		arruserdata.push(ud.FlowScore) // -- 输赢流水
+		arruserdata.push(ud.userinfo.WinLost + ud.WinScore) //  -- 结算后历史累计输赢
+		arruserdata.push(ud.userinfo.Score) // -- 下注前余额
+		arruserdata.push(ud.userinfo.Score + ud.WinScore) // -- 结算后余额
+		arruserdata.push(`\\'${JSON.stringify(gamerecord)}\\'`) //,"{}"  -- 有详细数据json  包含详细下注情况和开牌
+		arruserdata.push(`"${users[ud.userinfo.UserId].ip}"`) // -- 外网IP
+		arruserdata.push(ud.userinfo.AccessSellerID) // ,1 --  接入商户ID  来源 Sys_tb_AccessSeller的AccessSellerID
+		arruserdata.push(`"${ud.userinfo.AccessUser}"`) //,'1837397' --  接入商户用户  来源 Sys_tb_AccessSeller的AccessUser
+		arruserdata.push(0) //,0   --  接入商户用户ID  来源 Sys_tb_AccessSeller的AccessUserID 【可选】
+		arruserdata.push(config.serverid) // ,9999 -- 服务器ID
+		let struserdata = '('.concat(arruserdata)
+		struserdata = struserdata.concat(')')
+		flowuserdata += struserdata
+		flowuserdata += `,`
+		arruserdata.splice(15, 1)
+		struserdata = '('.concat(arruserdata)
+		struserdata = struserdata.concat(')')
+		scoreuserdata += struserdata
+		scoreuserdata += `,`
 		ud.userinfo.Score += ud.WinScore
 		server.setToken(ud.userinfo.Token, ud.userinfo)
-		let data = {
-			UserId: ud.userinfo.UserId,
-			SellerId: ud.userinfo.SellerId,
-			Custom: ud.userinfo.Custom,
-			WinScore: ud.WinScore,
-			BetScore: ud.BetScore,
-			FlowScore: ud.FlowScore,
-			TaxScore: ud.TaxScore,
-			TotalScore: ud.userinfo.Score,
-		}
-		puserdata.push(data)
 	}
-	let procdata = [RoomId, config.serverid, serial, config.currency, JSON.stringify(gamerecord), JSON.stringify(puserdata)]
-	server.db.callProc('x_Game_WriteScore', procdata, () => {
-		callback()
+	if (scoreuserdata.length > 0) scoreuserdata = scoreuserdata.substring(0, scoreuserdata.length - 1)
+	if (flowuserdata.length > 0) flowuserdata = flowuserdata.substring(0, flowuserdata.length - 1)
+	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${flowuserdata}')`
+	server.xgameflow.exectue(sqlstr, [], () => {
+		userdata.splice(15, 1)
+		struserdata = '('.concat(userdata)
+		struserdata = struserdata.concat(')')
+		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${scoreuserdata}')`
+		server.db.exectue(sqlstr, [], () => {
+			callback()
+		})
 	})
 }
 function getSerial(callback) {
@@ -183,30 +209,26 @@ function addMsgCallback(msgid, callback) {
 }
 server.ws.addCloseCallback((ctx) => {
 	if (!ctx.token) return
-    let token = ctx.token
-    delete ctx.token
+	let token = ctx.token
+	delete ctx.token
 	if (user_leave_callback) {
 		server.getToken(token, (tokendata) => {
 			server.delToken(token)
 			if (!tokendata) return
 			user_leave_callback(tokendata)
-            if (ctx.UserId)
-            {
-                delete users[ctx.UserId]
-                server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
-                delete ctx.UserId
-            }
+			if (ctx.UserId) {
+				delete users[ctx.UserId]
+				server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout', [ctx.UserId], () => {})
+				delete ctx.UserId
+			}
 		})
+	} else {
+		if (ctx.UserId) {
+			delete users[ctx.UserId]
+			server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout', [ctx.UserId], () => {})
+			delete ctx.UserId
+		}
 	}
-    else
-    {
-        if (ctx.UserId)
-        {
-            delete users[ctx.UserId]
-            server.db.callProc('XPlatform_UserManage_Sys_tb_User_Logout',[ctx.UserId],()=>{})
-            delete ctx.UserId
-        }
-    }
 })
 function addUserLeaveCallback(callback) {
 	user_leave_callback = callback
