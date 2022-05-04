@@ -445,8 +445,9 @@ connect_redis = function (rediscfgs, index, callback) {
 	} else {
 		url = `redis://${rediscfgs[index].host}:${rediscfgs[index].port}`
 	}
+	//console.log(`Redis连接:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`)
 	let connection = redis.createClient({ url })
-	connection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
+	connection.on('error', (err) => {})
 	connection.name = rediscfgs[index].name
 	connection.subscribe = function (channel, callback) {
 		redisdata[`sub${this.name}`].subscribe(channel, (message) => {
@@ -472,11 +473,11 @@ connect_redis = function (rediscfgs, index, callback) {
 			connection.ping()
 		}, 5000)
 		let subconnection = redis.createClient({ url })
-		subconnection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
+		subconnection.on('error', (err) => {})
 		subconnection.connect().then(() => {
 			subconnection.subscribe(`__ping__${rediscfgs[index].name}`, (msg) => {})
 			let pubconnection = redis.createClient({ url })
-			pubconnection.on('error', (err) => console.log(`Redis连接失败:[${rediscfgs[index].name}:${rediscfgs[index].host}:${rediscfgs[index].port}]`))
+			pubconnection.on('error', (err) => {})
 			pubconnection.connect().then(() => {
 				setInterval(() => {
 					pubconnection.publish(`__ping__${rediscfgs[index].name}`, 'ping')
@@ -495,20 +496,20 @@ connect_redis = function (rediscfgs, index, callback) {
 let dbdata = {}
 let connect_db
 connect_db = function (dbcfgs, index, subidx, callback, reconnect) {
-	if (dbcfgs.length == index ) {
-		if(!reconnect) callback()
+	if (dbcfgs.length == index) {
+		if (!reconnect) callback()
 		return
 	}
 	dbcfgs[index].count = dbcfgs[index].count || 1
 	if (subidx == dbcfgs[index].count) {
-		if(!reconnect) connect_db(dbcfgs, index + 1, 0, callback)
+		if (!reconnect) connect_db(dbcfgs, index + 1, 0, callback)
 		return
 	}
 	let key = `${dbcfgs[index].name}_${subidx}`
 	let db = mysql.createConnection(dbcfgs[index])
 	db.connect((err) => {
 		if (err) {
-            db = null
+			db = null
 			console.log(`连接数据库失败:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
 			if (config.release) {
 				setTimeout(() => {
@@ -520,16 +521,16 @@ connect_db = function (dbcfgs, index, subidx, callback, reconnect) {
 				db.ping((err) => {})
 			}, 10000)
 			db.on('error', () => {
-                clearInterval(pingInterval)
-                pingInterval = null
-                db = null
-                delete dbdata[key]
+				clearInterval(pingInterval)
+				pingInterval = null
+				db = null
+				delete dbdata[key]
 				console.log(`数据库断开连接:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
-				if (config.release) connect_db(dbcfgs, index, subidx, callback,true)
+				if (config.release) connect_db(dbcfgs, index, subidx, callback, true)
 			})
 			dbdata[key] = db
 			console.log(`连接数据库成功:[${dbcfgs[index].name}:${dbcfgs[index].host}:${dbcfgs[index].port}:${dbcfgs[index].database}:${subidx}]`)
-			if(!reconnect) connect_db(dbcfgs, index, subidx + 1, callback)
+			if (!reconnect) connect_db(dbcfgs, index, subidx + 1, callback)
 		}
 	})
 }
@@ -860,8 +861,9 @@ module.exports.init = (cfg, callback) => {
 			} else {
 				url = `redis://${cfg.token.host}:${cfg.token.port}`
 			}
+			//console.log(`Redis连接失败:[token:${cfg.token.host}:${cfg.token.port}]`)
 			redis_token = redis.createClient({ url })
-			redis_token.on('error', (err) => console.log(`Redis连接失败:[token:${cfg.token.host}:${cfg.token.port}]`))
+			redis_token.on('error', (err) => {})
 			redis_token.connect().then(function () {
 				console.log(`Redis连接成功:[token:${cfg.token.host}:${cfg.token.port}]`)
 				setInterval(() => {
