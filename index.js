@@ -901,7 +901,9 @@ module.exports.clone = (obj) => {
 module.exports.rand = (minNum, maxNum) => {
 	if ((typeof minNum == 'number' && typeof minNum == 'number' && minNum != null) || (minNum != undefined && maxNum != null && maxNum != undefined && minNum < maxNum)) {
 		if (minNum == maxNum) return minNum
-		return parseInt(Math.random() * (maxNum - minNum) + minNum, 10)
+		let Range = maxNum - minNum
+		let Rand = Math.random()
+		return minNum + Math.floor(Rand * Range) //舍去
 	}
 }
 
