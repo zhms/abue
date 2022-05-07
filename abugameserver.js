@@ -371,7 +371,9 @@ function getServerData(savekey, callback) {
 	})
 }
 function randomIntRange(minNum, maxNum) {
-	return parseInt(Math.random() * (maxNum - minNum) + minNum, 10)
+	let Range = maxNum - minNum
+	let Rand = Math.random()
+	return minNum + Math.floor(Rand * Range) //舍去
 }
 function getXSetting(settingname, callback) {
 	let sql = `select SettingValue from x_setting where SettingName = ?`
