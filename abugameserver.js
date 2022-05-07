@@ -90,7 +90,7 @@ server.ws.addMsgCallback('logout', (ctx) => {
 	}
 })
 //玩家信息,score金币变化值,gamedata游戏记录,taxscore税收
-function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord, taxscore, callback) {
+function writeScore(userinfo, serial, betscore, winscore, flowscore, gamerecord, taxscore, callback) {
 	if (typeof taxscore == 'function') {
 		callback = taxscore
 		taxscore = 0
@@ -124,18 +124,20 @@ function writeSocre(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 	userinfo.WinLost += winscore
 	server.setToken(userinfo.Token, userinfo)
 	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
-	server.xgameflow.exectue(sqlstr, [], () => {
+	server.xgameflow.exectue(sqlstr, [], (resulta) => {
+		if (resulta[0][0].p_ReturnValue != 0) console.log('xgameflow.ServiceManage_FM_re_UserBetFlow_Insert', resulta[0][0].p_ReturnValue)
 		userdata.splice(15, 1)
 		struserdata = '('.concat(userdata)
 		struserdata = struserdata.concat(')')
 		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
-		server.db.exectue(sqlstr, [], () => {
+		server.db.exectue(sqlstr, [], (resultb) => {
+			if (resultb[0][0].p_ReturnValue != 0) console.log('xgame.ServiceManage_FM_re_UserBetFlow_Insert', resultb[0][0].p_ReturnValue)
 			callback()
 		})
 	})
 }
 //serial 牌局号,gamerecord对局详情,结算数据userdata[userinfo,BetScore,WinScore,FlowScore,TaxScore]
-function writeSocreEx(serial, gamerecord, userdata, callback) {
+function writeScoreEx(serial, gamerecord, userdata, callback) {
 	let now = moment().format('YYYY-MM-DD HH:mm:ss')
 	let flowuserdata = ''
 	let scoreuserdata = ''
@@ -178,12 +180,14 @@ function writeSocreEx(serial, gamerecord, userdata, callback) {
 	if (scoreuserdata.length > 0) scoreuserdata = scoreuserdata.substring(0, scoreuserdata.length - 1)
 	if (flowuserdata.length > 0) flowuserdata = flowuserdata.substring(0, flowuserdata.length - 1)
 	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${flowuserdata}')`
-	server.xgameflow.exectue(sqlstr, [], () => {
+	server.xgameflow.exectue(sqlstr, [], (resulta) => {
+		if (resulta[0][0].p_ReturnValue != 0) console.log('xgameflow.ServiceManage_FM_re_UserBetFlow_Insert', resulta[0][0].p_ReturnValue)
 		userdata.splice(15, 1)
 		struserdata = '('.concat(userdata)
 		struserdata = struserdata.concat(')')
 		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${scoreuserdata}')`
-		server.db.exectue(sqlstr, [], () => {
+		server.db.exectue(sqlstr, [], (resultb) => {
+			if (resultb[0][0].p_ReturnValue != 0) console.log('xgame.ServiceManage_FM_re_UserBetFlow_Insert', resultb[0][0].p_ReturnValue)
 			callback()
 		})
 	})
@@ -601,8 +605,8 @@ function getControlSampleData(userinfo, callback) {
 
 module.exports = {
 	init, //初始化服务器
-	writeSocre, //单个玩家写分
-	writeSocreEx, //批量写分
+	writeScore, //单个玩家写分
+	writeScoreEx, //批量写分
 	getSerial, //获取游戏牌局号
 	addMsgCallback, //监听游戏消息回调
 	addUserLeaveCallback, //监听玩家离开消息
