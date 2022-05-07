@@ -99,6 +99,7 @@ function writeScore(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 	let userdata = []
 	userdata.push(userinfo.UserId) // -- 用户ID
 	userdata.push(1) //,1 -- 流水ID 每批数据从1开始
+    userdata.push(config.currency) //  币种
 	userdata.push(1) //-- 下注数
 	userdata.push(betscore) //-- 下注金额
 	userdata.push(0) // -- 下注抽水
@@ -117,21 +118,23 @@ function writeScore(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 	userdata.push(userinfo.AccessSellerID) // ,1 --  接入商户ID  来源 Sys_tb_AccessSeller的AccessSellerID
 	userdata.push(`"${userinfo.AccessUser}"`) //,'1837397' --  接入商户用户  来源 Sys_tb_AccessSeller的AccessUser
 	userdata.push(0) //,0   --  接入商户用户ID  来源 Sys_tb_AccessSeller的AccessUserID 【可选】
+    userdata.push(config.gameid)
+    userdata.push(config.roomlevel)
 	userdata.push(config.serverid) // ,9999 -- 服务器ID
 	let struserdata = '('.concat(userdata)
 	struserdata = struserdata.concat(')')
 	userinfo.Score += winscore
 	userinfo.WinLost += winscore
 	server.setToken(userinfo.Token, userinfo)
-	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
+	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert_v2("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
 	server.xgameflow.exectue(sqlstr, [], (resulta) => {
-		if (resulta[0][0].p_ReturnValue != 0) console.log('xgameflow.ServiceManage_FM_re_UserBetFlow_Insert', resulta[0][0].p_ReturnValue)
-		userdata.splice(15, 1)
+		if (resulta[0][0].p_ReturnValue != 0) console.log('xgameflow.ServiceManage_FM_re_UserBetFlow_Insert_v2', resulta[0][0].p_ReturnValue)
+		userdata.splice(16, 1)
 		struserdata = '('.concat(userdata)
 		struserdata = struserdata.concat(')')
-		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
+		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert_v2("${now}",${config.gameid},${config.roomlevel},"${serial}",1,'${struserdata}')`
 		server.db.exectue(sqlstr, [], (resultb) => {
-			if (resultb[0][0].p_ReturnValue != 0) console.log('xgame.ServiceManage_FM_re_UserBetFlow_Insert', resultb[0][0].p_ReturnValue)
+			if (resultb[0][0].p_ReturnValue != 0) console.log('xgame.ServiceManage_FM_re_UserBetFlow_Insert_v2', resultb[0][0].p_ReturnValue)
 			callback()
 		})
 	})
@@ -146,6 +149,7 @@ function writeScoreEx(serial, gamerecord, userdata, callback) {
 		let arruserdata = []
 		arruserdata.push(ud.userinfo.UserId) // -- 用户ID
 		arruserdata.push(1) //,1 -- 流水ID 每批数据从1开始
+        arruserdata.push(config.currency)
 		arruserdata.push(1) //-- 下注数
 		arruserdata.push(ud.BetScore) //-- 下注金额
 		arruserdata.push(0) // -- 下注抽水
@@ -164,12 +168,14 @@ function writeScoreEx(serial, gamerecord, userdata, callback) {
 		arruserdata.push(ud.userinfo.AccessSellerID) // ,1 --  接入商户ID  来源 Sys_tb_AccessSeller的AccessSellerID
 		arruserdata.push(`"${ud.userinfo.AccessUser}"`) //,'1837397' --  接入商户用户  来源 Sys_tb_AccessSeller的AccessUser
 		arruserdata.push(0) //,0   --  接入商户用户ID  来源 Sys_tb_AccessSeller的AccessUserID 【可选】
+        arruserdata.push(config.gameid)
+        arruserdata.push(config.roomlevel)
 		arruserdata.push(config.serverid) // ,9999 -- 服务器ID
 		let struserdata = '('.concat(arruserdata)
 		struserdata = struserdata.concat(')')
 		flowuserdata += struserdata
 		flowuserdata += `,`
-		arruserdata.splice(15, 1)
+		arruserdata.splice(16, 1)
 		struserdata = '('.concat(arruserdata)
 		struserdata = struserdata.concat(')')
 		scoreuserdata += struserdata
@@ -179,15 +185,15 @@ function writeScoreEx(serial, gamerecord, userdata, callback) {
 	}
 	if (scoreuserdata.length > 0) scoreuserdata = scoreuserdata.substring(0, scoreuserdata.length - 1)
 	if (flowuserdata.length > 0) flowuserdata = flowuserdata.substring(0, flowuserdata.length - 1)
-	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${flowuserdata}')`
+	let sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert_v2("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${flowuserdata}')`
 	server.xgameflow.exectue(sqlstr, [], (resulta) => {
-		if (resulta[0][0].p_ReturnValue != 0) console.log('xgameflow.ServiceManage_FM_re_UserBetFlow_Insert', resulta[0][0].p_ReturnValue)
+		if (resulta[0][0].p_ReturnValue != 0) console.log('xgameflow.ServiceManage_FM_re_UserBetFlow_Insert_v2', resulta[0][0].p_ReturnValue)
 		userdata.splice(15, 1)
 		struserdata = '('.concat(userdata)
 		struserdata = struserdata.concat(')')
-		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${scoreuserdata}')`
+		sqlstr = `call ServiceManage_FM_re_UserBetFlow_Insert_v2("${now}",${config.gameid},${config.roomlevel},"${serial}",2,'${scoreuserdata}')`
 		server.db.exectue(sqlstr, [], (resultb) => {
-			if (resultb[0][0].p_ReturnValue != 0) console.log('xgame.ServiceManage_FM_re_UserBetFlow_Insert', resultb[0][0].p_ReturnValue)
+			if (resultb[0][0].p_ReturnValue != 0) console.log('xgame.ServiceManage_FM_re_UserBetFlow_Insert_v2', resultb[0][0].p_ReturnValue)
 			callback()
 		})
 	})
