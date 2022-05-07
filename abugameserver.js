@@ -14,6 +14,7 @@ function init(icfg) {
 	if (strroomid.length == 1) strroomid = '0' + strroomid
 	if (strcurrency.length == 1) strcurrency = '0' + strcurrency
 	RoomId = strgameid + strroomid + strcurrency
+	RoomId = parseInt(RoomId)
 }
 function getControlData(userinfo) {
 	let sql = 'select * from x_user_control where UserId = ?'
@@ -269,11 +270,11 @@ function getUserGameData(userinfo, savekey, callback) {
 }
 function saveUserRoomData(userinfo, savekey, data) {
 	let sql = `replace into x_saved_data(UserId,Gameid,RoomLevel,SaveKey,data)values(?,?,?,?,?)`
-	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, savekey, JSON.stringify(data)], () => {})
+	server.db.exectue(sql, [userinfo.UserId, config.gameid, RoomId, savekey, JSON.stringify(data)], () => {})
 }
 function getUserRoomData(userinfo, savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = ? and GameId = ? and RoomLevel = ? and ServerId = 0 and SaveKey = ?'
-	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, savekey], (data) => {
+	server.db.exectue(sql, [userinfo.UserId, config.gameid, RoomId, savekey], (data) => {
 		if (data.length == 0) {
 			data = null
 		} else {
@@ -286,11 +287,11 @@ function getUserRoomData(userinfo, savekey, callback) {
 }
 function saveUserServerData(userinfo, savekey, data) {
 	let sql = `replace into x_saved_data(UserId,Gameid,RoomLevel,ServerId,SaveKey,data)values(?,?,?,?,?,?)`
-	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, config.serverid, savekey, JSON.stringify(data)], () => {})
+	server.db.exectue(sql, [userinfo.UserId, config.gameid, RoomId, config.serverid, savekey, JSON.stringify(data)], () => {})
 }
 function getUserServerData(userinfo, savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = ? and GameId = ? and RoomLevel = ? and ServerId = ? and SaveKey = ?'
-	server.db.exectue(sql, [userinfo.UserId, config.gameid, config.roomlevel, config.serverid, savekey], (data) => {
+	server.db.exectue(sql, [userinfo.UserId, config.gameid, RoomId, config.serverid, savekey], (data) => {
 		if (data.length == 0) {
 			data = null
 		} else {
@@ -337,11 +338,11 @@ function getGameData(savekey, callback) {
 }
 function saveRoomData(savekey, data) {
 	let sql = `replace into x_saved_data(Gameid,RoomLevel,SaveKey,data)values(?,?,?,?)`
-	server.db.exectue(sql, [config.gameid, config.roomlevel, savekey, JSON.stringify(data)], () => {})
+	server.db.exectue(sql, [config.gameid, RoomId, savekey, JSON.stringify(data)], () => {})
 }
 function getRoomData(savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = 0 and GameId = ? and RoomLevel = ? and ServerId = 0 and SaveKey = ?'
-	server.db.exectue(sql, [config.gameid, config.roomlevel, savekey], (data) => {
+	server.db.exectue(sql, [config.gameid, RoomId, savekey], (data) => {
 		if (data.length == 0) {
 			data = null
 		} else {
@@ -354,11 +355,11 @@ function getRoomData(savekey, callback) {
 }
 function saveServerData(savekey, data) {
 	let sql = `replace into x_saved_data(UserId,Gameid,RoomLevel,ServerId,SaveKey,data)values(?,?,?,?,?,?)`
-	server.db.exectue(sql, [0, config.gameid, config.roomlevel, config.serverid, savekey, JSON.stringify(data)], () => {})
+	server.db.exectue(sql, [0, config.gameid, RoomId, config.serverid, savekey, JSON.stringify(data)], () => {})
 }
 function getServerData(savekey, callback) {
 	let sql = 'select data from x_saved_data where UserId = 0 and GameId = ? and RoomLevel = ? and ServerId = ? and SaveKey = ?'
-	server.db.exectue(sql, [config.gameid, config.roomlevel, config.serverid, savekey], (data) => {
+	server.db.exectue(sql, [config.gameid, RoomId, config.serverid, savekey], (data) => {
 		if (data.length == 0) {
 			data = null
 		} else {
