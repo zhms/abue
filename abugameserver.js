@@ -95,7 +95,7 @@ function writeScore(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 		callback = taxscore
 		taxscore = 0
 	}
-	let now = moment().format('YYYY-MM-DD HH:mm:ss')
+	let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
 	let userdata = []
 	userdata.push(userinfo.UserId) // -- 用户ID
 	userdata.push(1) //,1 -- 流水ID 每批数据从1开始
@@ -141,7 +141,7 @@ function writeScore(userinfo, serial, betscore, winscore, flowscore, gamerecord,
 }
 //serial 牌局号,gamerecord对局详情,结算数据userdata[userinfo,BetScore,WinScore,FlowScore,TaxScore]
 function writeScoreEx(serial, gamerecord, userdata, callback) {
-	let now = moment().format('YYYY-MM-DD HH:mm:ss')
+	let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
 	let flowuserdata = ''
 	let scoreuserdata = ''
 	for (let i = 0; i < userdata.length; i++) {
